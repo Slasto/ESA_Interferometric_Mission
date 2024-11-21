@@ -1,4 +1,4 @@
-<image src="../data/golomb.png" align="center" alt="Challenge 2: Interferometric Mission"/>
+<image src="./data/golomb.png" align="center" alt="Challenge 2: Interferometric Mission"/>
 
 # Challenge 2: Interferometric Mission
 
