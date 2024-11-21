@@ -1,0 +1,14 @@
+services:
+  app:
+    build: ./build/Python
+    container_name: python-mott
+    ports:
+      - "8080:8080"             # Mappa la porta 8080 del container alla porta 8080 del tuo sistema
+    volumes:
+      - ./:/home/mott/ESA_Interferometric_Mission
+    environment:
+      - PYTHONUNBUFFERED=1      # Fa si che Python non faccia buffering per una migliore visualizzazione dei log
+      - PYTHONDONTWRITEBYTECODE 1
+    command: tail -f /dev/null  # Mantieni il container in esecuzione
+    stdin_open: true            # Abilita l'interazione con il terminale del container
+    tty: true                   # Abilita il terminale per il container
