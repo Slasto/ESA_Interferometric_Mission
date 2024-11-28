@@ -1,10 +1,11 @@
-heyoka==3.2.0  # Libreria per il calcolo dinamico e la simulazione di sistemi differenziali
-pygmo          # Libreria per l'ottimizzazione parallela e multi-obiettivo
-numpy          # Libreria fondamentale per il calcolo scientifico con array multidimensionali
-scipy          # Libreria di algoritmi e strumenti per il calcolo scientifico
-pillow         # Libreria per la manipolazione di immagini
-matplotlib     # Libreria per la creazione di grafici e visualizzazioni
+heyoka==3.2.0  	# Libreria per il calcolo dinamico e la simulazione di sistemi differenziali
+pygmo          	# Libreria per l'ottimizzazione parallela e multi-obiettivo
+numpy          	# Libreria fondamentale per il calcolo scientifico con array multidimensionali
+scipy          	# Libreria di algoritmi e strumenti per il calcolo scientifico
+pillow         	# Libreria per la manipolazione di immagini
+matplotlib     	# Libreria per la creazione di grafici e visualizzazioni
 # DIPENDENZE EXTRA
-ruff           # Libreria per il controllo della qualità del codice Python
-ipykernel      # Libreria per l'esecuzione di kernel Python con Jupyter Notebooks
-pygad          # Libreria per la creazione di algoritmi genetici in Python
+ruff           	# Libreria per il controllo della qualità del codice Python
+ipykernel      	# Libreria per l'esecuzione di kernel Python con Jupyter Notebooks
+pygad          	# Libreria per la creazione di algoritmi genetici in Python
+pyMetaheuristic	# Libreria per la creazione di algoritmi meta-euristici in Python 
