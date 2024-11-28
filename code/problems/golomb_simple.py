@@ -329,7 +329,7 @@ class orbital_golomb_array:
 
 
     # Here is where the action takes place
-    def fitness_impl(self, x, plotting=False, figsize=(15, 10)):
+    def fitness_impl(self, x, plotting=False, figsize=(15, 10), multi : bool = False):
         """ Fitness function
 
         Args:
@@ -502,8 +502,10 @@ class orbital_golomb_array:
                     axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
                 else:
                     axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
-
-        return [-min(fill_factor)] # Return worst of all three observations
+        if multi is False : # Default
+            return [-min(fill_factor)] # Return worst of all three observations7
+        if multi is True : 
+            return fill_factor * (-1) # Return worst of all three observations
 
 
 ############### SIMPLE problem configuration
