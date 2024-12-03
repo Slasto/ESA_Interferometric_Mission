@@ -343,7 +343,7 @@ class orbital_golomb_array:
 
 
     # Here is where the action takes place
-    def fitness_impl(self, x, plotting=False, figsize=(15, 10), multi : bool = False, check_distance : bool = False):
+    def fitness_impl(self, x, plotting=False, figsize=(15, 10), multi : bool = False, fill_is_zero_if_not_optimal : bool = False):
         """ Fitness function
 
         Args:
@@ -416,7 +416,7 @@ class orbital_golomb_array:
             for i, j, k_ in pos3D:
                 EYE[i, j, k_] = 1
 
-            if check_distance is True :
+            if fill_is_zero_if_not_optimal is True :
                 if are_distances_distinct(pos3D) is False: 
                     EYE = np.zeros((self.grid_size, self.grid_size, self.grid_size))
                 
@@ -520,9 +520,11 @@ class orbital_golomb_array:
                     axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
                 else:
                     axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
+        if plotting :
+            plt.show()        
         
         if multi is False : # Default
-            return [-min(fill_factor)] # Return worst of all three observations7
+            return [-min(fill_factor)] # Return worst of all three observations
         if multi is True : 
             return [-fill for fill in fill_factor] # Return worst of all three observations
 
