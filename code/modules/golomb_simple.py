@@ -5,11 +5,14 @@
 # This Source Code Form is subject to the terms of the Mozilla
 # Public License v. 2.0. Obtain one at http://mozilla.org/MPL/2.0/.
 
+from itertools import combinations
+from collections import Counter
+
 import heyoka as hy
 import numpy as np
 import scipy
-import PIL
 import time
+import PIL
 
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
@@ -119,6 +122,26 @@ def stm_factory(ic, T, mu, M, verbose=True):
     ref_state = sol[4][:, :6]
     stms = sol[4][:, 6:].reshape(M, 6, 6)
     return (ref_state, stms)
+
+def are_distances_distinct(pos3D) -> bool:
+    def check_duplicates(distances) -> bool:
+        counter = Counter(distances)
+        for value, count in counter.items():
+            if count > 1 and value != 0:
+                return True
+        return False
+    
+    distance_xy = []
+    distance_xz = []
+    distance_yz = []
+                
+    for point_1, point_2 in combinations(pos3D,2) :
+        distance_xy.append( abs(point_1[0]-point_2[0])+abs(point_1[1]-point_2[1]) )
+        distance_xz.append( abs(point_1[0]-point_2[0])+abs(point_1[2]-point_2[2]) )
+        distance_yz.append( abs(point_1[1]-point_2[1])+abs(point_1[2]-point_2[2]) )
+        
+    return (check_duplicates(distance_xy) & check_duplicates(distance_xz) & check_duplicates(distance_yz)) is False
+
 
 class orbital_golomb_array:
     def __init__(
@@ -320,7 +343,7 @@ class orbital_golomb_array:
 
 
     # Here is where the action takes place
-    def fitness_impl(self, x, plotting=False, figsize=(15, 10), multi : bool = False):
+    def fitness_impl(self, x, plotting=False, figsize=(15, 10), multi : bool = False, check_distance : bool = False):
         """ Fitness function
 
         Args:
@@ -389,13 +412,17 @@ class orbital_golomb_array:
             # Here we use the (https://stackoverflow.com/questions/62026550/why-does-scipy-signal-correlate2d-use-such-an-inefficient-algorithm)
             # correlate and ot correlate2d. We must then consider a threshold to define zero as the frequency domain inversion has numerical roundoffs
 
-            I = np.zeros((self.grid_size, self.grid_size, self.grid_size))
+            EYE = np.zeros((self.grid_size, self.grid_size, self.grid_size))
             for i, j, k_ in pos3D:
-                I[i, j, k_] = 1
+                EYE[i, j, k_] = 1
 
-            xy = np.max(I, axis = (2,))
-            xz = np.max(I, axis = (1,))
-            yz = np.max(I, axis = (0,))
+            if check_distance is True :
+                if are_distances_distinct(pos3D) is False: 
+                    EYE = np.zeros((self.grid_size, self.grid_size, self.grid_size))
+                
+            xy = np.max(EYE, axis = (2,))
+            xz = np.max(EYE, axis = (1,))
+            yz = np.max(EYE, axis = (0,))
 
             xyC = scipy.signal.correlate(xy, xy, mode="full")
             xzC = scipy.signal.correlate(xz, xz, mode="full")
@@ -493,10 +520,11 @@ class orbital_golomb_array:
                     axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
                 else:
                     axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
+        
         if multi is False : # Default
             return [-min(fill_factor)] # Return worst of all three observations7
         if multi is True : 
-            return fill_factor * (-1) # Return worst of all three observations
+            return [-fill for fill in fill_factor] # Return worst of all three observations
 
 def init_simple_problem(
     ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.],
