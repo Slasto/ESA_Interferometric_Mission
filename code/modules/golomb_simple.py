@@ -124,22 +124,38 @@ def stm_factory(ic, T, mu, M, verbose=True):
     return (ref_state, stms)
 
 def are_distances_distinct(pos3D) -> bool:
+    """
+    Determines if distances between points in a 3D space are unique across three coordinate planes (xy, xz, yz).
+
+    This function calculates the Manhattan distances between each pair of points in the
+    xy, xz, and yz planes. It then checks if any non-zero distance occurs more than once
+    in each plane.
+
+    Args:
+        pos3D (`list[tuple[float, float, float]]`): A list of tuples where each tuple
+        represents the (x, y, z) coordinates of a point in 3D space.
+
+    Returns:
+        bool: Returns True if all non-zero distances between points are distinct in all
+        three coordinate planes; False otherwise.
+    """
     def check_duplicates(distances) -> bool:
+        """Helper function to check if there are duplicate distances in a given list of distances."""
         counter = Counter(distances)
-        for value, count in counter.items():
-            if count > 1 and value != 0:
+        for distance, n_repetitions in counter.items():
+            if n_repetitions > 1 and distance != 0:
                 return True
         return False
-    
+
     distance_xy = []
     distance_xz = []
     distance_yz = []
-                
+
     for point_1, point_2 in combinations(pos3D,2) :
         distance_xy.append( abs(point_1[0]-point_2[0])+abs(point_1[1]-point_2[1]) )
         distance_xz.append( abs(point_1[0]-point_2[0])+abs(point_1[2]-point_2[2]) )
         distance_yz.append( abs(point_1[1]-point_2[1])+abs(point_1[2]-point_2[2]) )
-        
+
     return (check_duplicates(distance_xy) & check_duplicates(distance_xz) & check_duplicates(distance_yz)) is False
 
 
@@ -219,13 +235,13 @@ class orbital_golomb_array:
         Args:
             x (`list` of length N): Chromosome contains initial relative positions and velocities of each satellite:
             Example: x = [ dx0_N1, dx0_N2, ..., dx0_NN, dy0_N1, dy0_N2, ..., dy0_NN , ...... , dvz0_N1, dvz0_N2, ..., dvz0_NN]
-            M (`int`): Number of interferometric measurments performed along the trajectory
+            M (`int`): Number of interferometric measurements performed along the trajectory
                            (assumed at equally spaced time intervals).
             grid_size (int, optional): _description_. Defaults to 256.
             image_path (str, optional): _description_. Defaults to "data/nebula.jpg".
         """        
 
-        #  Time of flight for the measurments
+        #  Time of flight for the measurements
         T = self.T
 
         _, stms = stm_factory(self.ic, T, self.mu, M, self.verbose)
@@ -234,7 +250,7 @@ class orbital_golomb_array:
         N = self.n_sat
 
         dx0 = np.array(
-            [(i, j, k, l, m, n) for (i, j, k, l, m, n) in zip(x[      : N], 
+            [(i, j, k, p, m, n) for (i, j, k, p, m, n) in zip(x[      : N], 
                                                               x[N     : 2 * N], 
                                                               x[2 * N : 3 * N],
                                                               x[3 * N : 4 * N],
@@ -343,7 +359,7 @@ class orbital_golomb_array:
 
 
     # Here is where the action takes place
-    def fitness_impl(self, x, plotting=False, figsize=(15, 10), multi : bool = False, fill_is_zero_if_not_optimal : bool = False):
+    def fitness_impl(self, x, plotting=False, figsize=(15, 10), return_all_n_meas_fillfactor : bool = False, fill_is_zero_if_not_optimal : bool = False):
         """ Fitness function
 
         Args:
@@ -523,10 +539,11 @@ class orbital_golomb_array:
         if plotting :
             plt.show()        
         
-        if multi is False : # Default
-            return [-min(fill_factor)] # Return worst of all three observations
-        if multi is True : 
+        if return_all_n_meas_fillfactor  : 
             return [-fill for fill in fill_factor] # Return worst of all three observations
+        else: # Default
+            return [-min(fill_factor)] # Return worst of all three observations
+
 
 def init_simple_problem(
     ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.],
@@ -544,7 +561,7 @@ def init_simple_problem(
         grid_size (`int`, optional): Grid size for Golomb array. Defaults to 11.
 
     Returns:
-        An instance of `orbital_golomb_array` configured with the provided parameters.
+        - An instance of `orbital_golomb_array` configured with the provided parameters.
     """
     M = 3 # Number of observations
     T = period*(M-1) # This makes it so that each observation is made after each period
