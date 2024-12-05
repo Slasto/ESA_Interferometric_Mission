@@ -358,7 +358,7 @@ class orbital_golomb_array:
         N = self.n_sat
 
         dx0 = np.array(
-            [(i, j, k, l, m, n) for (i, j, k, l, m, n) in zip(x[      : N], 
+            [(i, j, k, r, m, n) for (i, j, k, r, m, n) in zip(x[      : N], 
                                                               x[N     : 2 * N], 
                                                               x[2 * N : 3 * N],
                                                               x[3 * N : 4 * N],
