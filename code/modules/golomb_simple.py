@@ -534,8 +534,19 @@ def init_simple_problem(
     N = 5, # Number of satellites
     grid_size = 11 # Grid size
     ) -> orbital_golomb_array :
-    # Number of observations
-    M = 3
+    """
+    Initializes a simple problem for orbital Golomb array construction.
+
+    Args:
+        ic (`list`, optional): Initial conditions for the simulation.
+        period (`float`, optional): Orbital period used to determine observation timing.
+        N (`int`, optional): Number of satellites in the formation. Defaults to 5.
+        grid_size (`int`, optional): Grid size for Golomb array. Defaults to 11.
+
+    Returns:
+        An instance of `orbital_golomb_array` configured with the provided parameters.
+    """
+    M = 3 # Number of observations
     T = period*(M-1) # This makes it so that each observation is made after each period
 
     mu = 0.01215058560962404  # M_L/(M_T + M_L)
