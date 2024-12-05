@@ -1,5 +1,6 @@
 heyoka==3.2.0  	# Libreria per il calcolo dinamico e la simulazione di sistemi differenziali
-pygmo          	# Libreria per l'ottimizzazione parallela e multi-obiettivo
+#pygmo          # Libreria per l'ottimizzazione parallela e multi-obiettivo
+pymoo       
 numpy          	# Libreria fondamentale per il calcolo scientifico con array multidimensionali
 scipy          	# Libreria di algoritmi e strumenti per il calcolo scientifico
 pillow         	# Libreria per la manipolazione di immagini

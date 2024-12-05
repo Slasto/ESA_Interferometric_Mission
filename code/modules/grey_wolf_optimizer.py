@@ -1,4 +1,4 @@
-# GWO No libs : https://www.geeksforgeeks.org/implementation-of-grey-wolf-optimization-gwo-algorithm/ 
+# src: https://www.geeksforgeeks.org/implementation-of-grey-wolf-optimization-gwo-algorithm/ 
 import random
 import copy    # array-copying convenience
 
