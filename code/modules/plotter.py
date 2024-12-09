@@ -1,7 +1,7 @@
 from modules.golomb_simple import orbital_golomb_array
 
 
-def print_result(udp : orbital_golomb_array, x_solution, N_obs : int = 300, image_path : str = "../data/star.jpg") -> None:
+def print_result(udp : orbital_golomb_array, x_solution, N_obs : int = 300, image_path : str = "../data/nebula.jpg") -> None:
     """ Prints the result details and visualizes the given solution.
 
     Args:
