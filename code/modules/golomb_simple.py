@@ -123,11 +123,12 @@ def stm_factory(ic, T, mu, M, verbose=True):
     stms = sol[4][:, 6:].reshape(M, 6, 6)
     return (ref_state, stms)
 
-def are_distances_distinct(pos3D) -> bool:
-    """
-    Determines if distances between points in a 3D space are unique across three coordinate planes (xy, xz, yz).
 
-    This function calculates the Manhattan distances between each pair of points in the
+def compute_n_unique_dist_on_xy_xz_yz(pos3D) -> tuple[int,int,int]:
+    """
+    Compute the number of duplicates distance across three coordinate planes (xy, xz, yz).
+
+    This function calculates the Pairwise between each pair of points in the
     xy, xz, and yz planes. It then checks if any non-zero distance occurs more than once
     in each plane.
 
@@ -136,27 +137,31 @@ def are_distances_distinct(pos3D) -> bool:
         represents the (x, y, z) coordinates of a point in 3D space.
 
     Returns:
-        bool: Returns True if all non-zero distances between points are distinct in all
-        three coordinate planes; False otherwise.
+        `Tuple[int,int,int]` : (duplicate_distance_xy, duplicate_distance_xz, duplicate_distance_yz)
     """
-    def check_duplicates(distances) -> bool:
+
+    def unique_of_distance(distances) -> int:
         """Helper function to check if there are duplicate distances in a given list of distances."""
-        counter = Counter(distances)
-        for distance, n_repetitions in counter.items():
-            if n_repetitions > 1 and distance != 0:
-                return True
-        return False
+        unique = 0
+        for distance, n_repetitions in Counter(distances).items():
+            if n_repetitions < 2 or distance == 0:
+                unique += 1
+        return unique
 
     distance_xy = []
     distance_xz = []
     distance_yz = []
 
-    for point_1, point_2 in combinations(pos3D,2) :
-        distance_xy.append( abs(point_1[0]-point_2[0])+abs(point_1[1]-point_2[1]) )
-        distance_xz.append( abs(point_1[0]-point_2[0])+abs(point_1[2]-point_2[2]) )
-        distance_yz.append( abs(point_1[1]-point_2[1])+abs(point_1[2]-point_2[2]) )
+    for (x1,y1,z1), (x2,y2,z2) in combinations(pos3D, 2):
+        distance_xy.append(np.sqrt(abs(x1 - x2)**2 + abs(y1 - y2)**2))
+        distance_xz.append(np.sqrt(abs(x1 - x2)**2 + abs(z1 - z2)**2))
+        distance_yz.append(np.sqrt(abs(y1 - y2)**2 + abs(z1 - z2)**2))
 
-    return (check_duplicates(distance_xy) & check_duplicates(distance_xz) & check_duplicates(distance_yz)) is False
+    return (
+        unique_of_distance(distance_xy),
+        unique_of_distance(distance_xz),
+        unique_of_distance(distance_yz)
+    )
 
 
 class orbital_golomb_array:
@@ -198,6 +203,7 @@ class orbital_golomb_array:
         self.mu = mu
         self.inflation_factor = inflation_factor
         self.verbose = verbose
+        self.distance_limit_weight = 1/n_sat
 
         # We construct the various STMs and reference trajectory
         self.ref_state, self.stms = stm_factory(ic, T, mu, n_meas, self.verbose)
@@ -206,7 +212,9 @@ class orbital_golomb_array:
     # Mandatory method in the UDP pygmo interface
     # (returns the lower and upper bound of each component in the chromosome)
     def get_bounds(self):
-        return ([-1.0] * self.n_sat * 3 + [-10.0] * self.n_sat * 3 , [1.0] * self.n_sat * 3 + [10.0] * self.n_sat * 3 )
+        # return ([-1.0] * self.n_sat * 3 + [-10.0] * self.n_sat * 3 , [1.0] * self.n_sat * 3 + [10.0] * self.n_sat * 3 )
+        return ([-1.0] * self.n_sat * 3 + [-1.0] * self.n_sat * 3 , [1.0] * self.n_sat * 3 + [1.0] * self.n_sat * 3 )
+
 
     def get_nix(self):
         """
@@ -357,10 +365,17 @@ class orbital_golomb_array:
         print('YZ')
         plot_recon(gs_yz, g_yz)
 
-
     # Here is where the action takes place
-    def fitness_impl(self, x, plotting=False, figsize=(15, 10), return_all_n_meas_fillfactor : bool = False, fill_is_zero_if_not_optimal : bool = False):
-        """ Fitness function
+    def fitness_impl(
+        self,
+        x,
+        plotting=False,
+        figsize=(15, 10),
+        return_all_n_meas_fillfactor: bool = False,
+        reduce_fill_if_not_optimal: bool = False,
+        limit_distance: int = None,
+    ):
+        """Fitness function
 
         Args:
             x (`list` of length N): Chromosome contains initial relative positions and velocities of each satellite:
@@ -431,11 +446,6 @@ class orbital_golomb_array:
             EYE = np.zeros((self.grid_size, self.grid_size, self.grid_size))
             for i, j, k_ in pos3D:
                 EYE[i, j, k_] = 1
-
-            if fill_is_zero_if_not_optimal is True :
-                if are_distances_distinct(pos3D) is False: 
-                    EYE = np.zeros((self.grid_size, self.grid_size, self.grid_size))
-                
             xy = np.max(EYE, axis = (2,))
             xz = np.max(EYE, axis = (1,))
             yz = np.max(EYE, axis = (0,))
@@ -450,8 +460,30 @@ class orbital_golomb_array:
             f1 = np.count_nonzero(xyC) / xyC.shape[0] / xyC.shape[1]
             f2 = np.count_nonzero(xzC) / xzC.shape[0] / xzC.shape[1]
             f3 = np.count_nonzero(yzC) / yzC.shape[0] / yzC.shape[1]
+
+            limit_distance_value = 0
+            if limit_distance is not None:
+                center = int(self.grid_size / 2)
+                for i,j,k in pos3D :
+                    if (
+                            abs(center - i) <= limit_distance
+                        and abs(center - j) <= limit_distance
+                        and abs(center - k) <= limit_distance
+                    ) is False :
+                        limit_distance_value+=1
+
+            if reduce_fill_if_not_optimal and len(pos3D)>1:
+                alpha_f1, alpha_f2, alpha_f3 = compute_n_unique_dist_on_xy_xz_yz(pos3D)
+                size = sum(1 for _ in combinations(pos3D, 2))
+                f1 = f1 * (alpha_f1/size)
+                f2 = f2 * (alpha_f2/size)
+                f3 = f3 * (alpha_f3/size)
+
+            fill_factor.append(
+                (f1 + f2 + f3) - (limit_distance_value * self.distance_limit_weight)
+            )  # Save sum of three fill factors at this observation
             
-            fill_factor.append(f1+f2+f3) # Save sum of three fill factors at this observation
+                    
 
             if plotting:
                 # XY
@@ -468,8 +500,10 @@ class orbital_golomb_array:
                 elif k == 1:
                     axs[k * self.n_meas].set_title(f"2nd measurement\nt = 1 period\nXY plane\n{int(np.sum(xy))} satellites remaining !", color="black")
                 else:
-                    axs[k * self.n_meas].set_title(f"3rd measurement\nt = 2 periods\nXY plane\n{int(np.sum(xy))} satellites remaining !", color="black")
-
+                    axs[k * self.n_meas].set_title(
+                        f"3rd measurement\nt = 2 periods\nXY plane\n{int(np.sum(xy))} satellites remaining !",
+                        color="black",
+                    )
 
                 # On the second row we plot the autocorrelated Golomb Grids
                 axs[k * self.n_meas + 3 * self.n_meas].imshow(xyC, cmap=cm.jet, interpolation="nearest", origin='lower')
@@ -503,47 +537,148 @@ class orbital_golomb_array:
                 axs[k * self.n_meas + 1 + 3 * self.n_meas].grid(False)
                 axs[k * self.n_meas + 1 + 3 * self.n_meas].axis("off")
                 if k == 0:
-                    axs[k * self.n_meas + 1 + 3 * self.n_meas].set_title(f"fill factor = {f2:1.6f}", color="red")
+                    axs[k * self.n_meas + 1 + 3 * self.n_meas].set_title(
+                        f"fill factor = {f2:1.6f}", color="red"
+                    )
                 elif k == 1:
-                    axs[k * self.n_meas + 1 + 3 * self.n_meas].set_title(f"fill factor = {f2:1.6f}", color="red")
+                    axs[k * self.n_meas + 1 + 3 * self.n_meas].set_title(
+                        f"fill factor = {f2:1.6f}", color="red"
+                    )
                 else:
-                    axs[k * self.n_meas + 1 + 3 * self.n_meas].set_title(f"fill factor = {f2:1.6f}", color="red")
+                    axs[k * self.n_meas + 1 + 3 * self.n_meas].set_title(
+                        f"fill factor = {f2:1.6f}", color="red"
+                    )
 
                 # XZ
                 # On the first raw we plot the Golomb Grids
-                axs[k * self.n_meas + 2].imshow(yz, cmap=cm.jet, interpolation="nearest", origin='lower')
-                axs[k * self.n_meas + 2].add_patch(plt.Rectangle((int(self.grid_size / 2)-0.5, int(self.grid_size / 2)-0.5), 1, 1, color='black', alpha=0.5))
-                axs[k * self.n_meas + 2].text( int(self.grid_size / 2), int(self.grid_size / 2), 'M', color='white', fontsize=12, ha='center', va='center')
+                axs[k * self.n_meas + 2].imshow(
+                    yz, cmap=cm.jet, interpolation="nearest", origin="lower"
+                )
+                axs[k * self.n_meas + 2].add_patch(
+                    plt.Rectangle(
+                        (int(self.grid_size / 2) - 0.5, int(self.grid_size / 2) - 0.5),
+                        1,
+                        1,
+                        color="black",
+                        alpha=0.5,
+                    )
+                )
+                axs[k * self.n_meas + 2].text(
+                    int(self.grid_size / 2),
+                    int(self.grid_size / 2),
+                    "M",
+                    color="white",
+                    fontsize=12,
+                    ha="center",
+                    va="center",
+                )
                 axs[k * self.n_meas + 2].grid(False)
                 axs[k * self.n_meas + 2].set_xlim(-0.5, self.grid_size - 0.5)
                 axs[k * self.n_meas + 2].set_ylim(-0.5, self.grid_size - 0.5)
                 axs[k * self.n_meas + 2].axis("off")
 
                 if k == 0:
-                    axs[k * self.n_meas + 2].set_title(f"1st measurement\nt = 0\nYZ plane\n{int(np.sum(yz))} satellites remaining !", color="black")
+                    axs[k * self.n_meas + 2].set_title(
+                        f"1st measurement\nt = 0\nYZ plane\n{int(np.sum(yz))} satellites remaining !",
+                        color="black",
+                    )
                 elif k == 1:
-                    axs[k * self.n_meas + 2].set_title(f"2nd measurement\nt = 1 period\nYZ plane\n{int(np.sum(yz))} satellites remaining !", color="black")
+                    axs[k * self.n_meas + 2].set_title(
+                        f"2nd measurement\nt = 1 period\nYZ plane\n{int(np.sum(yz))} satellites remaining !",
+                        color="black",
+                    )
                 else:
-                    axs[k * self.n_meas + 2].set_title(f"3rd measurement\nt = 2 periods\nYZ plane\n{int(np.sum(yz))} satellites remaining !", color="black")
+                    axs[k * self.n_meas + 2].set_title(
+                        f"3rd measurement\nt = 2 periods\nYZ plane\n{int(np.sum(yz))} satellites remaining !",
+                        color="black",
+                    )
 
                 # On the secnd raw we plot the autocorrelated Golomb Grids
-                axs[k * self.n_meas + 2 + 3 * self.n_meas].imshow(yzC, cmap=cm.jet, interpolation="nearest", origin='lower')
+                axs[k * self.n_meas + 2 + 3 * self.n_meas].imshow(
+                    yzC, cmap=cm.jet, interpolation="nearest", origin="lower"
+                )
                 axs[k * self.n_meas + 2 + 3 * self.n_meas].grid(False)
                 axs[k * self.n_meas + 2 + 3 * self.n_meas].axis("off")
                 if k == 0:
-                    axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
+                    axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(
+                        f"fill factor = {f3:1.6f}", color="red"
+                    )
                 elif k == 1:
-                    axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
+                    axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(
+                        f"fill factor = {f3:1.6f}", color="red"
+                    )
                 else:
-                    axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(f"fill factor = {f3:1.6f}", color="red")
-        if plotting :
-            plt.show()        
-        
-        if return_all_n_meas_fillfactor  : 
-            return [-fill for fill in fill_factor] # Return worst of all three observations
-        else: # Default
-            return [-min(fill_factor)] # Return worst of all three observations
+                    axs[k * self.n_meas + 2 + 3 * self.n_meas].set_title(
+                        f"fill factor = {f3:1.6f}", color="red"
+                    )
+        if plotting:
+            plt.show()
 
+        if return_all_n_meas_fillfactor:
+            return [
+                -fill for fill in fill_factor
+            ]  # Return worst of all three observations
+        else:  # Default
+            return [-min(fill_factor)]  # Return worst of all three observations
+
+    def fitness_distance(
+        self,
+        x,
+    ) :
+        N = self.n_sat
+
+        dx0 = np.array(
+            [
+                (i, j, k, r, m, n)
+                for (i, j, k, r, m, n) in zip(
+                    x[:N],
+                    x[N : 2 * N],
+                    x[2 * N : 3 * N],
+                    x[3 * N : 4 * N],
+                    x[4 * N : 5 * N],
+                    x[5 * N :],
+                )
+            ]
+        )
+
+        rel_pos = []
+        for stm in self.stms:
+            # We scale the initial positions and velocities
+            d_ic = dx0 * self.scaling_factor
+            fc = propagate_formation(d_ic, stm)
+            # We store the relative positions in the original 'units'
+            rel_pos.append(fc / self.scaling_factor)
+        rel_pos = np.array(rel_pos)
+
+        distances_values = []
+
+        for k in range(self.n_meas):
+            points_3D = rel_pos[k]
+            # Account for an added factor allowing the formation to spread. (Except for first observation, k == 0)
+            if k != 0:
+                points_3D = points_3D / (self.inflation_factor)
+
+            # and removing the points outside [-1,1] (cropping wavelengths here)
+            points_3D = points_3D[np.max(points_3D, axis=1) < 1]
+            points_3D = points_3D[np.min(points_3D, axis=1) > -1]
+
+            # Interpret now the 3D positions [-1,1] as points on a grid.
+            pos3D = points_3D * self.grid_size / 2
+            pos3D = pos3D + int(self.grid_size / 2)
+            pos3D = pos3D.astype(int)
+            
+            if len(pos3D) > 1 : 
+                xy, xz, yz = compute_n_unique_dist_on_xy_xz_yz(pos3D)
+                distances_values.append(-(xy+xz+yz)/sum(1 for _ in combinations(pos3D, 2)))
+
+        return distances_values
+
+
+
+
+
+
+        
 
 def init_simple_problem(
     ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.],
