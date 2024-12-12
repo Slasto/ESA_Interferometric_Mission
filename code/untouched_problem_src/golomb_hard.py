@@ -506,29 +506,29 @@ class orbital_golomb_array:
         return [-min(fill_factor)] # Return worst of all three observations
 
 
-############### MEDIUM problem configuration
 
-# DRO
-ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.]
-period = 2.6905181697222775
+def init_hard_problem() :
+    # Halo
+    ic= [ 1.0829551779304256e+00,-6.9232801936027592e-27,-2.0231744561698364e-01,9.7888791827480806e-15,-2.0102644884016105e-01,2.4744866465838825e-14] 
+    period=2.383491010514447 
 
-# Number of satellites
-N = 40
+    # Number of satellites
+    N = 40
 
-# Grid size
-grid_size = 21
+    # Grid size
+    grid_size = 21
 
-############### Constants
-# Number of observations
-M = 3
-T = period*(M-1) # This makes it so that each observation is made after each period
+    ############### Constants
+    # Number of observations
+    M = 3
+    T = period*(M-1) # This makes it so that each observation is made after each period
 
-mu = 0.01215058560962404  # M_L/(M_T + M_L)
+    mu = 0.01215058560962404  # M_L/(M_T + M_L)
 
-scaling_factor = 1e-4
+    scaling_factor = 1e-4
 
-inflation_factor = 1.23
-###############
+    inflation_factor = 1.23
+    ###############
 
-# Instantiate UDP
-udp = orbital_golomb_array(n_sat=N, ic = ic, T = T, grid_size=grid_size, scaling_factor = scaling_factor, n_meas=M, inflation_factor = inflation_factor, mu=mu, verbose=False)
+    # Instantiate UDP
+    return orbital_golomb_array(n_sat=N, ic = ic, T = T, grid_size=grid_size, scaling_factor = scaling_factor, n_meas=M, inflation_factor = inflation_factor, mu=mu, verbose=False)

@@ -1,9 +1,4 @@
-# Copyright 2024 European Space Agency
-#
-# This file is shipped via the optimize.esa.int web framework.
-#
-# This Source Code Form is subject to the terms of the Mozilla
-# Public License v. 2.0. Obtain one at http://mozilla.org/MPL/2.0/.
+# This Source Code is based on European Space Agency: SpOC 3 Interferometric Mission
 
 from itertools import combinations
 from collections import Counter
@@ -632,27 +627,23 @@ class orbital_golomb_array:
 
         return distances_values
 
-
 # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
-def init_simple_problem(
-    ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.],
-    period = 2.6905181697222775,
-    N = 5, # Number of satellites
-    grid_size = 11 # Grid size
-    ) -> orbital_golomb_array :
-    """
-    Initializes a simple problem for orbital Golomb array construction.
 
-    Args:
-        ic (`list`, optional): Initial conditions for the simulation.
-        period (`float`, optional): Orbital period used to determine observation timing.
-        N (`int`, optional): Number of satellites in the formation. Defaults to 5.
-        grid_size (`int`, optional): Grid size for Golomb array. Defaults to 11.
+def init_simple_problem() -> orbital_golomb_array :
+    '''SIMPLE problem configuration'''
 
-    Returns:
-        - An instance of `orbital_golomb_array` configured with the provided parameters.
-    """
-    M = 3 # Number of observations
+    # DRO
+    ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.]
+    period = 2.6905181697222775
+    # Number of satellites
+    N = 5
+
+    # Grid size
+    grid_size = 11
+
+    ############### Constants
+    # Number of observations
+    M = 3
     T = period*(M-1) # This makes it so that each observation is made after each period
 
     mu = 0.01215058560962404  # M_L/(M_T + M_L)
@@ -660,9 +651,67 @@ def init_simple_problem(
     scaling_factor = 1e-4
 
     inflation_factor = 1.23
+    ###############
 
+    # Instantiate UDP
     return orbital_golomb_array(n_sat=N, ic = ic, T = T, grid_size=grid_size, scaling_factor = scaling_factor, n_meas=M, inflation_factor = inflation_factor, mu=mu, verbose=False)
 
+def init_medium_problem() -> orbital_golomb_array:
+    '''MEDIUM problem configuration'''
+
+    # DRO
+    ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.]
+    period = 2.6905181697222775
+
+    # Number of satellites
+    N = 40
+
+    # Grid size
+    grid_size = 21
+
+    ############### Constants
+    # Number of observations
+    M = 3
+    T = period*(M-1) # This makes it so that each observation is made after each period
+
+    mu = 0.01215058560962404  # M_L/(M_T + M_L)
+
+    scaling_factor = 1e-4
+
+    inflation_factor = 1.23
+    ###############
+
+    # Instantiate UDP
+    return orbital_golomb_array(n_sat=N, ic = ic, T = T, grid_size=grid_size, scaling_factor = scaling_factor, n_meas=M, inflation_factor = inflation_factor, mu=mu, verbose=False)
+
+def init_hard_problem() -> orbital_golomb_array:
+    '''HARD problem configuration'''
+    # Halo
+    ic= [ 1.0829551779304256e+00,-6.9232801936027592e-27,-2.0231744561698364e-01,9.7888791827480806e-15,-2.0102644884016105e-01,2.4744866465838825e-14] 
+    period=2.383491010514447 
+
+    # Number of satellites
+    N = 40
+
+    # Grid size
+    grid_size = 21
+
+    ############### Constants
+    # Number of observations
+    M = 3
+    T = period*(M-1) # This makes it so that each observation is made after each period
+
+    mu = 0.01215058560962404  # M_L/(M_T + M_L)
+
+    scaling_factor = 1e-4
+
+    inflation_factor = 1.23
+    ###############
+
+    # Instantiate UDP
+    return orbital_golomb_array(n_sat=N, ic = ic, T = T, grid_size=grid_size, scaling_factor = scaling_factor, n_meas=M, inflation_factor = inflation_factor, mu=mu, verbose=False)
+
+# --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
 def x_encoded_into_grid_on_t_meas(UDP: orbital_golomb_array, x_encoded : list[(float,float,float)], meas : int) -> np.ndarray:
     """
@@ -709,7 +758,6 @@ def x_encoded_into_grid_on_t_meas(UDP: orbital_golomb_array, x_encoded : list[(f
     pos3D = (points_3D * UDP.grid_size / 2)
     pos3D = pos3D + int(UDP.grid_size / 2)
     return pos3D.astype(int)
-
 
 def compute_n_unique_dist_on_xy_xz_yz(pos3D) -> tuple[int,int,int]:
     """
