@@ -36,7 +36,7 @@ def gwo(fitness, max_iter, num_particles, dim, minx, maxx, verbose=True):
       print("Setting max_iter    = " + str(max_iter)) 
       print("\nStarting GWO algorithm\n") 
 
-    rnd = random.Random(0) 
+    rnd = random.Random() 
   
     # create n random wolves  
     population = [ __wolf(fitness, dim, minx, maxx, i) for i in range(num_particles)] 
