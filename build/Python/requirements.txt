@@ -1,6 +1,7 @@
 heyoka==3.2.0  	# Library for dynamic computation and simulation of differential systems
 numpy          	# Fundamental library for scientific computing with multidimensional arrays
 pillow         	# Library for image manipulation
+
 matplotlib     	# Library for creating plots and visualizations
 
 scipy          	# Library of algorithms and tools for scientific computing
@@ -10,4 +11,6 @@ pymoo           # Library for multi-objective optimization
 pyMetaheuristic	# Library for developing metaheuristic algorithms in Python
 
 ruff           	# Library for Python code quality control
+
 ipykernel      	# Library for running Python kernels with Jupyter Notebooks
+nbformat        # Library for handling Jupyter Notebook files and formats
