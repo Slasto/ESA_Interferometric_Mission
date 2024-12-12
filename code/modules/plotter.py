@@ -1,27 +1,41 @@
 import numpy as np
 import plotly.graph_objects as go
 from IPython.display import display, Markdown
-from modules.golomb_simple import orbital_golomb_array
+from modules.golomb_simple import orbital_golomb_array, x_encoded_into_grid_on_t_meas
 
-def print_result(udp : orbital_golomb_array, x_solution, N_obs : int = 300) -> None:
+def plot_simulated_reconstruction(udp : orbital_golomb_array, x_solution, N_obs : int = 300) -> None:
+    """
+    Plots simulated reconstructions using given solutions and number of observations.
+
+    Args:
+        udp (`orbital_golomb_array`): The orbital golomb array instance to perform plot operations.
+        x_solution: The solution data used for reconstruction.
+        N_obs (`int`, optional): Number of observations for simulation. Defaults to 300.
+    """
+    display(Markdown("---"))
+    udp.plot_simulated_reconstruction(x_solution, N_obs, image_path="../data/star.jpg")
+    display(Markdown("---"))
+    udp.plot_simulated_reconstruction(x_solution, N_obs, image_path="../data/nebula.jpg")
+
+def print_result(udp : orbital_golomb_array, x_solution, N_obs : int = 300, show_simulated_reconstruction : bool = False) -> None:
     """ Prints the result details and visualizes the given solution.
 
     Args:
         udp (`orbital_golomb_array`): An instance of the orbital golomb array class, used to evaluate the fitness and plot the solution.
         x_solution (`list` of length N): The solution to be evaluated and plotted.
+        plot_simulated_reconstruction (`int`, optional): Show image recostruction of star.jpeg and nebula.jpeg
         N_obs (`int`, optional): Number of observations for simulating reconstruction.
-        image_path (`str`, optional): Path to the image used in simulated reconstruction.
-    Returns: None
     """
-    fit = udp.fitness(x_solution)[0]
-    display(Markdown("---"))
+
+    if show_simulated_reconstruction :
+        display(Markdown("---"))
+    
     print("Solution: ", x_solution)
-    print("Fitness: {:.5f}".format(fit))
+    print("Fitness: ", udp.fitness(x_solution))
     udp.plot(x_solution, figsize=(25,7))
-    display(Markdown("---"))
-    udp.plot_simulated_reconstruction(x_solution, N_obs, image_path="../data/star.jpg")
-    display(Markdown("---"))
-    udp.plot_simulated_reconstruction(x_solution, N_obs, image_path="../data/nebula.jpg")
+
+    if show_simulated_reconstruction:
+        plot_simulated_reconstruction(udp, x_solution, N_obs)  
 
 def plot_in_3D_space(UDP: orbital_golomb_array, x_encoded : list[(float,float,float)], meas : int = 2) -> None:
     """
@@ -31,57 +45,7 @@ def plot_in_3D_space(UDP: orbital_golomb_array, x_encoded : list[(float,float,fl
         UDP (`orbital_golomb_array`): An instance of the orbital golomb array class.
         x_encoded (`list[(float,float,float)]`): Encoded positions of the satellites.
         meas (`int`, optional): Measurement index. Defaults to 2.
-
-    Returns:
-        None
     """
-    def x_encoded_into_grid_on_t_meas(UDP: orbital_golomb_array, x_encoded : list[(float,float,float)], meas : int) -> np.ndarray:
-        """
-        Converts encoded positions into grid coordinates for a specific measurement.
-
-        Args:
-            UDP (`orbital_golomb_array`): An instance of the orbital golomb array class.
-            x_encoded (`list[(float,float,float)]`): Encoded positions of the satellites.
-            meas (`int`): Measurement index.
-
-        Returns:
-            `np.ndarray`: Grid coordinates of the satellites for the given measurement.
-
-        Raises:
-            ValueError: If the measurement index exceeds the number of measurements in UDP.
-        """ 
-        if meas > UDP.n_meas  :
-            raise ValueError("Measurement index exceeds the number of measurements in UDP")
-        
-        N = UDP.n_sat
-        dx0 = np.array(
-            [(i, j, k, r, m, n) for (i, j, k, r, m, n) in zip(x_encoded[      : N], 
-                                                              x_encoded[N     : 2 * N], 
-                                                              x_encoded[2 * N : 3 * N],
-                                                              x_encoded[3 * N : 4 * N],
-                                                              x_encoded[4 * N : 5 * N],
-                                                              x_encoded[5 * N : ],
-                                                              )]
-        )
-
-        
-        rel_pos = []
-        for stm in UDP.stms:
-            d_ic = dx0 * UDP.scaling_factor
-            fc = (stm @ d_ic.T).T[:, :3]
-            #fc = propagate_formation(d_ic, stm)
-            rel_pos.append(fc / UDP.scaling_factor)
-
-        points_3D = np.array(rel_pos)[meas]
-        if meas != 0:
-                points_3D = points_3D / (UDP.inflation_factor)
-                
-        points_3D = points_3D[np.max(points_3D, axis=1) < 1 ]
-        points_3D = points_3D[np.min(points_3D, axis=1) > -1]
-
-        pos3D = (points_3D * UDP.grid_size / 2)
-        pos3D = pos3D + int(UDP.grid_size / 2)
-        return pos3D.astype(int)
     
     points = x_encoded_into_grid_on_t_meas(UDP, x_encoded, meas)
     x_data, y_data, z_data = zip(*points)

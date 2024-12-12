@@ -1,4 +1,4 @@
-FROM python:3.10.15-slim-bookworm
+FROM python:3.10.16-slim-bookworm
 
 # Installa alcune utility necessarie per lo sviluppo (come git, curl, vim) come root
 RUN apt-get update && apt-get install -y \

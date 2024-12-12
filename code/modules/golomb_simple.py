@@ -123,47 +123,6 @@ def stm_factory(ic, T, mu, M, verbose=True):
     stms = sol[4][:, 6:].reshape(M, 6, 6)
     return (ref_state, stms)
 
-
-def compute_n_unique_dist_on_xy_xz_yz(pos3D) -> tuple[int,int,int]:
-    """
-    Compute the number of duplicates distance across three coordinate planes (xy, xz, yz).
-
-    This function calculates the Pairwise between each pair of points in the
-    xy, xz, and yz planes. It then checks if any non-zero distance occurs more than once
-    in each plane.
-
-    Args:
-        pos3D (`list[tuple[float, float, float]]`): A list of tuples where each tuple
-        represents the (x, y, z) coordinates of a point in 3D space.
-
-    Returns:
-        `Tuple[int,int,int]` : (duplicate_distance_xy, duplicate_distance_xz, duplicate_distance_yz)
-    """
-
-    def unique_of_distance(distances) -> int:
-        """Helper function to check if there are duplicate distances in a given list of distances."""
-        unique = 0
-        for distance, n_repetitions in Counter(distances).items():
-            if n_repetitions < 2 or distance == 0:
-                unique += 1
-        return unique
-
-    distance_xy = []
-    distance_xz = []
-    distance_yz = []
-
-    for (x1,y1,z1), (x2,y2,z2) in combinations(pos3D, 2):
-        distance_xy.append(np.sqrt(abs(x1 - x2)**2 + abs(y1 - y2)**2))
-        distance_xz.append(np.sqrt(abs(x1 - x2)**2 + abs(z1 - z2)**2))
-        distance_yz.append(np.sqrt(abs(y1 - y2)**2 + abs(z1 - z2)**2))
-
-    return (
-        unique_of_distance(distance_xy),
-        unique_of_distance(distance_xz),
-        unique_of_distance(distance_yz)
-    )
-
-
 class orbital_golomb_array:
     def __init__(
         self,
@@ -674,12 +633,7 @@ class orbital_golomb_array:
         return distances_values
 
 
-
-
-
-
-        
-
+# --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 def init_simple_problem(
     ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.],
     period = 2.6905181697222775,
@@ -708,3 +662,90 @@ def init_simple_problem(
     inflation_factor = 1.23
 
     return orbital_golomb_array(n_sat=N, ic = ic, T = T, grid_size=grid_size, scaling_factor = scaling_factor, n_meas=M, inflation_factor = inflation_factor, mu=mu, verbose=False)
+
+
+def x_encoded_into_grid_on_t_meas(UDP: orbital_golomb_array, x_encoded : list[(float,float,float)], meas : int) -> np.ndarray:
+    """
+    Converts encoded positions into grid coordinates for a specific measurement.
+
+    Args:
+        UDP (`orbital_golomb_array`): An instance of the orbital golomb array class.
+        x_encoded (`list[(float,float,float)]`): Encoded positions of the satellites.
+        meas (`int`): Measurement index.
+
+    Returns:
+        `np.ndarray`: Grid coordinates of the satellites for the given measurement.
+
+    Raises:
+        ValueError: If the measurement index exceeds the number of measurements in UDP.
+    """ 
+    if meas > UDP.n_meas  :
+        raise ValueError("Measurement index exceeds the number of measurements in UDP")
+        
+    N = UDP.n_sat
+    dx0 = np.array(
+            [(i, j, k, r, m, n) for (i, j, k, r, m, n) in zip(x_encoded[      : N], 
+                                                              x_encoded[N     : 2 * N], 
+                                                              x_encoded[2 * N : 3 * N],
+                                                              x_encoded[3 * N : 4 * N],
+                                                              x_encoded[4 * N : 5 * N],
+                                                              x_encoded[5 * N : ],
+                                                            )
+            ]
+        )
+
+    rel_pos = []
+    for stm in UDP.stms:
+        d_ic = dx0 * UDP.scaling_factor
+        fc = (stm @ d_ic.T).T[:, :3]
+        #fc = propagate_formation(d_ic, stm)
+        rel_pos.append(fc / UDP.scaling_factor)
+    points_3D = np.array(rel_pos)[meas]
+    if meas != 0:
+        points_3D = points_3D / (UDP.inflation_factor)
+            
+    points_3D = points_3D[np.max(points_3D, axis=1) < 1 ]
+    points_3D = points_3D[np.min(points_3D, axis=1) > -1]
+    pos3D = (points_3D * UDP.grid_size / 2)
+    pos3D = pos3D + int(UDP.grid_size / 2)
+    return pos3D.astype(int)
+
+
+def compute_n_unique_dist_on_xy_xz_yz(pos3D) -> tuple[int,int,int]:
+    """
+    Compute the number of duplicates distance across three coordinate planes (xy, xz, yz).
+
+    This function calculates the Pairwise between each pair of points in the
+    xy, xz, and yz planes. It then checks if any non-zero distance occurs more than once
+    in each plane.
+
+    Args:
+        pos3D (`list[tuple[float, float, float]]`): A list of tuples where each tuple
+        represents the (x, y, z) coordinates of a point in 3D space.
+
+    Returns:
+        `Tuple[int,int,int]` : (duplicate_distance_xy, duplicate_distance_xz, duplicate_distance_yz)
+    """
+
+    def unique_of_distance(distances) -> int:
+        """Helper function to check if there are duplicate distances in a given list of distances."""
+        unique = 0
+        for distance, n_repetitions in Counter(distances).items():
+            if n_repetitions < 2 or distance == 0:
+                unique += 1
+        return unique
+
+    distance_xy = []
+    distance_xz = []
+    distance_yz = []
+
+    for (x1,y1,z1), (x2,y2,z2) in combinations(pos3D, 2):
+        distance_xy.append(np.sqrt(abs(x1 - x2)**2 + abs(y1 - y2)**2))
+        distance_xz.append(np.sqrt(abs(x1 - x2)**2 + abs(z1 - z2)**2))
+        distance_yz.append(np.sqrt(abs(y1 - y2)**2 + abs(z1 - z2)**2))
+
+    return (
+        unique_of_distance(distance_xy),
+        unique_of_distance(distance_xz),
+        unique_of_distance(distance_yz)
+    )
