@@ -1,13 +1,14 @@
 FROM python:3.11-slim
 
-ARG USERNAME=mott
-RUN useradd -m -s /bin/bash $USERNAME
-USER $USERNAME
+RUN useradd -m -s /bin/bash mott
+USER mott
     
-RUN mkdir /home/$USERNAME/ESA_Interferometric_Mission
-WORKDIR /home/$USERNAME/ESA_Interferometric_Mission
+RUN mkdir /home/mott/ESA_Interferometric_Mission
+WORKDIR /home/mott/ESA_Interferometric_Mission
+
 
 COPY requirements.txt .
+ENV PATH="/home/mott/.local/bin:${PATH}"
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8080
