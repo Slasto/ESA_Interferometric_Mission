@@ -4,6 +4,7 @@ from modules.golomb_problem import (
     compute_n_unique_dist_on_xy_xz_yz,
 )
 from IPython.display import display, Markdown, clear_output
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 import os
 
@@ -29,7 +30,7 @@ def show_table_of_solutions(result: dict) -> None:
 
 
 def increase_difficulty(
-    udp: orbital_golomb_array, n_sats_range: range, optimizer : callable, print_table : bool = False, file_name: str = None
+    udp: orbital_golomb_array, n_sats_range: range, optimizer : callable, verbose : bool = False, file_name: str = None
 ) -> list[tuple[float, list[float]]]:
     """
     Increase the difficulty of finding optimal solutions by iterating over a range of satellite numbers.
@@ -49,11 +50,11 @@ def increase_difficulty(
     result = dict()
 
     for n_sats in tqdm(n_sats_range, "Optimization on"):
-        if print_table:
+        if verbose:
             clear_output()
             show_table_of_solutions(result)
             display(Markdown("---"))
-        golomb_fitness, solution = optimizer(udp, n_sats)
+        golomb_fitness, solution = optimizer(udp, n_sats, verbose)
 
         # Additional score --- --- --- ---  --- --- ---  --- --- ---
         n_distances = 3 * n_sats * (n_sats - 1) // 2
@@ -76,7 +77,9 @@ def increase_difficulty(
             "satellites_in_grid": sats_in_grid_score,
             "x_encoded": solution,
         }
-    if print_table :  
+    if verbose :
+        clear_output()
+        plot_results(result)
         show_table_of_solutions(result)
 
     if file_name is not None:
@@ -86,3 +89,33 @@ def increase_difficulty(
         print(f"Log has been saved in 'logs/{file_name}.log'")
 
     return result
+
+def plot_results(result: dict):
+    n_sats = list(result.keys())
+    fitness = [result[n]["fitness"] for n in n_sats]
+    diverse_distances = [result[n]["diverse_distances_metric"] for n in n_sats]
+    satellites_in_grid = [result[n]["satellites_in_grid"] for n in n_sats]
+
+    fig, axs = plt.subplots(1, 3, figsize=(14, 4))
+
+    axs[0].plot(n_sats, fitness, marker='o', linestyle='-')
+    axs[0].set_title('Golomb Fitness')
+    axs[0].set_xlabel('Number of Satellites')
+    axs[0].set_ylabel('Fitness')
+    axs[0].grid(True)
+
+    axs[1].plot(n_sats, diverse_distances, marker='o', linestyle='-', color='orange')
+    axs[1].set_title('Diverse Distances Metric')
+    axs[1].set_xlabel('Number of Satellites')
+    axs[1].set_ylabel('Diverse Distances [%]')
+    axs[1].grid(True)
+
+    axs[2].plot(n_sats, satellites_in_grid, marker='o', linestyle='-', color='green')
+    axs[2].set_title('Satellites in Grid')
+    axs[2].set_xlabel('Number of Satellites')
+    axs[2].set_ylabel('Satellites in Grid [%]')
+    axs[2].grid(True)
+
+
+    plt.tight_layout()
+    plt.show()
