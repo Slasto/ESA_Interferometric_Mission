@@ -428,7 +428,8 @@ class orbital_golomb_array:
 
             if reduce_fill_if_not_optimal and len(pos3D)>1:
                 alpha_f1, alpha_f2, alpha_f3 = compute_n_unique_dist_on_xy_xz_yz(pos3D)
-                size = sum(1 for _ in combinations(pos3D, 2))
+                #size = sum(1 for _ in combinations(pos3D, 2))
+                size = len(pos3D) * (len(pos3D)-1) //2
                 f1 = f1 * (alpha_f1/size)
                 f2 = f2 * (alpha_f2/size)
                 f3 = f3 * (alpha_f3/size)
@@ -630,7 +631,7 @@ class orbital_golomb_array:
 # --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 
 def init_simple_problem() -> orbital_golomb_array :
-    '''SIMPLE problem configuration'''
+    '''SIMPLE problem configuration with 5 satellites and grid 11*11'''
 
     # DRO
     ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.]
@@ -657,7 +658,7 @@ def init_simple_problem() -> orbital_golomb_array :
     return orbital_golomb_array(n_sat=N, ic = ic, T = T, grid_size=grid_size, scaling_factor = scaling_factor, n_meas=M, inflation_factor = inflation_factor, mu=mu, verbose=False)
 
 def init_medium_problem() -> orbital_golomb_array:
-    '''MEDIUM problem configuration'''
+    '''MEDIUM problem configuration with 40 satellites and grid 21*21'''
 
     # DRO
     ic = [0.896508460944940632764, 0., 0., 0.000000000000013951082, 0.474817948848534454598, 0.]
@@ -685,7 +686,7 @@ def init_medium_problem() -> orbital_golomb_array:
     return orbital_golomb_array(n_sat=N, ic = ic, T = T, grid_size=grid_size, scaling_factor = scaling_factor, n_meas=M, inflation_factor = inflation_factor, mu=mu, verbose=False)
 
 def init_hard_problem() -> orbital_golomb_array:
-    '''HARD problem configuration'''
+    '''HARD problem configuration with different ic and period compared to medium'''
     # Halo
     ic= [ 1.0829551779304256e+00,-6.9232801936027592e-27,-2.0231744561698364e-01,9.7888791827480806e-15,-2.0102644884016105e-01,2.4744866465838825e-14] 
     period=2.383491010514447 
