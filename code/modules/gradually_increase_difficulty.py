@@ -1,7 +1,6 @@
 from modules.golomb_problem import (
     orbital_golomb_array,
-    x_encoded_into_grid_on_t_meas,
-    compute_n_unique_dist_on_xy_xz_yz,
+    compute_unique_distances_and_sats_in_grid
 )
 from IPython.display import display, Markdown, clear_output
 import matplotlib.pyplot as plt
@@ -56,20 +55,7 @@ def increase_difficulty(
             display(Markdown("---"))
         golomb_fitness, solution = optimizer(udp, n_sats, verbose)
 
-        # Additional score --- --- --- ---  --- --- ---  --- --- ---
-        n_distances = 3 * n_sats * (n_sats - 1) // 2
-        distances_score = 0
-        sats_in_grid_score = 0
-        for i in range(udp.n_meas):
-            x_grid = x_encoded_into_grid_on_t_meas(udp, solution, i)
-            xy_score, zy_score, yz_score = compute_n_unique_dist_on_xy_xz_yz(x_grid)
-            distances_score += xy_score + zy_score + yz_score
-
-            sats_in_grid_score += len(x_grid)
-
-        distances_score /= n_distances * udp.n_meas
-        sats_in_grid_score /= n_sats * udp.n_meas
-        #  --- --- ---  --- --- ---  --- --- ---  --- --- ---  --- --- ---
+        distances_score, sats_in_grid_score = compute_unique_distances_and_sats_in_grid(udp,solution)
 
         result[n_sats] = {
             "fitness": golomb_fitness,

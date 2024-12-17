@@ -1,7 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
 from IPython.display import display, Markdown
-from modules.golomb_problem import orbital_golomb_array, x_encoded_into_grid_on_t_meas
+from modules.golomb_problem import orbital_golomb_array, x_encoded_into_grid_on_t_meas, compute_unique_distances_and_sats_in_grid
 
 def plot_simulated_reconstruction(udp : orbital_golomb_array, x_solution, N_obs : int = 300) -> None:
     """
@@ -26,9 +26,10 @@ def print_result(udp : orbital_golomb_array, x_solution, N_obs : int = 300, show
         plot_simulated_reconstruction (`int`, optional): Show image recostruction of star.jpeg and nebula.jpeg
         N_obs (`int`, optional): Number of observations for simulating reconstruction.
     """
-    
+    distance, sat = compute_unique_distances_and_sats_in_grid(udp,x_solution)
+    print("N sat: ", udp.n_sat,"\tGrid size: ", udp.grid_size) 
     print("Solution: ", x_solution)
-    print("Fitness: ", udp.fitness(x_solution))
+    print(f"Fitness: {udp.fitness(x_solution)}\tDiverse Distances [%]: {distance:.4f}\tSatellites in Grid [%]: {sat:.4f}")
     udp.plot(x_solution, figsize=(25,7))
 
     if show_simulated_reconstruction:

@@ -162,13 +162,11 @@ class orbital_golomb_array:
         # We construct the various STMs and reference trajectory
         self.ref_state, self.stms = stm_factory(ic, T, mu, n_meas, self.verbose)
 
-
     # Mandatory method in the UDP pygmo interface
     # (returns the lower and upper bound of each component in the chromosome)
     def get_bounds(self):
         # return ([-1.0] * self.n_sat * 3 + [-10.0] * self.n_sat * 3 , [1.0] * self.n_sat * 3 + [10.0] * self.n_sat * 3 )
         return ([-1.0] * self.n_sat * 3 + [-1.0] * self.n_sat * 3 , [1.0] * self.n_sat * 3 + [1.0] * self.n_sat * 3 )
-
 
     def get_nix(self):
         """
@@ -438,8 +436,6 @@ class orbital_golomb_array:
                 (f1 + f2 + f3) - (limit_distance_value * self.distance_limit_weight)
             )  # Save sum of three fill factors at this observation
             
-                    
-
             if plotting:
                 # XY
                 # On the first row we plot the Golomb Grids
@@ -744,13 +740,10 @@ def x_encoded_into_grid_on_t_meas(UDP: orbital_golomb_array, x_encoded : list[(f
             ]
         )
 
-    rel_pos = []
-    for stm in UDP.stms:
-        d_ic = dx0 * UDP.scaling_factor
-        fc = (stm @ d_ic.T).T[:, :3]
-        #fc = propagate_formation(d_ic, stm)
-        rel_pos.append(fc / UDP.scaling_factor)
-    points_3D = np.array(rel_pos)[meas]
+    d_ic = dx0 * UDP.scaling_factor 
+    fc = (UDP.stms[meas] @ d_ic.T).T[:, :3] 
+    points_3D = np.array(fc / UDP.scaling_factor)
+    
     if meas != 0:
         points_3D = points_3D / (UDP.inflation_factor)
             
@@ -798,3 +791,32 @@ def compute_n_unique_dist_on_xy_xz_yz(pos3D) -> tuple[int,int,int]:
         unique_of_distance(distance_xz),
         unique_of_distance(distance_yz)
     )
+
+def compute_unique_distances_and_sats_in_grid(udp: orbital_golomb_array, solution: list[float]) -> tuple[float, float]:
+    """
+    Compute the normalized count of unique distances and the average number of satellites
+    in the grid for a given set of solutions in an orbital golomb array.
+
+    Args:
+        udp (orbital_golomb_array): An instance representing the configuration of the satellites.
+        solution (list[float]): A list representing the proposed positions and velocities of the satellites.
+
+    Returns:
+        tuple[float, float]: A tuple containing the normalized count of unique distances and the average
+        number of satellites present in the grid across all measurement times.
+    """
+    n_distances = 3 * udp.n_sat * (udp.n_sat - 1) // 2
+    distances_score = 0
+    sats_in_grid_score = 0
+    for i in range(udp.n_meas):
+        x_grid = x_encoded_into_grid_on_t_meas(udp, solution, i)
+        xy_score, zy_score, yz_score = compute_n_unique_dist_on_xy_xz_yz(x_grid)
+
+        distances_score += xy_score + zy_score + yz_score
+        sats_in_grid_score += len(x_grid)
+        
+    distances_score /= n_distances * udp.n_meas
+    sats_in_grid_score /= udp.n_sat * udp.n_meas
+    return distances_score, sats_in_grid_score
+
+#  --- --- ---  --- --- ---  --- --- ---  --- --- ---  --- --- ---
