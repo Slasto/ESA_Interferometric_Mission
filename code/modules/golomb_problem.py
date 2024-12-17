@@ -185,11 +185,11 @@ class orbital_golomb_array:
         return self.fitness_impl(x)
 
     # Plots the representation of the chromosome in several graphs
-    def plot(self, x, figsize=(15, 10)):
+    def plot(self, x, figsize=(25,7)):
         return self.fitness_impl(x, plotting=True, figsize=figsize)
 
     def plot_simulated_reconstruction(
-        self, x, M=100, grid_size=256, image_path="data/nebula.jpg", plot_image=True
+        self, x, M=100, grid_size=256, image_path="../data/nebula.jpg", plot_image=True
     ):
         """_summary_
 
@@ -818,14 +818,18 @@ def compute_unique_distances_and_sats_in_grid(udp: orbital_golomb_array, solutio
     sats_in_grid_score = 0
     for i in range(udp.n_meas):
         x_grid = x_encoded_into_grid_on_t_meas(udp, solution, i)
-        xy_score, zy_score, yz_score = compute_n_unique_dist_on_xy_xz_yz(x_grid)
-
-        distances_score += xy_score + zy_score + yz_score
-        sats_in_grid_score += len(x_grid)
+        # sats_in_grid --- --- 
+        EYE = np.zeros((udp.grid_size, udp.grid_size, udp.grid_size))
+        for i, j, k_ in x_grid:
+                EYE[i, j, k_] = 1
+        sats_in_grid_score += np.sum(np.max(EYE, axis = (2,))) + np.sum(np.max(EYE, axis = (1,))) + np.sum(np.max(EYE, axis = (0,)))
+        # --- --- ---
+        distances_score += sum(compute_n_unique_dist_on_xy_xz_yz(x_grid))
         
     distances_score /= n_distances * udp.n_meas
-    sats_in_grid_score /= udp.n_sat * udp.n_meas
+    sats_in_grid_score /= (udp.n_sat * udp.n_meas * 3)
     return distances_score, sats_in_grid_score
+
 
 #  --- --- ---  --- --- ---  --- --- ---  --- --- ---  --- --- ---
 
