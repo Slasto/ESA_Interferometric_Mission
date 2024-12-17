@@ -15,3 +15,5 @@ ruff           	# Library for Python code quality control
 ipykernel      	# Library for running Python kernels with Jupyter Notebooks
 nbformat        # Library for handling Jupyter Notebook files and formats
 tqdm            # Library for progress bar visualization during iteration
+
+SSIM-PIL		# Library for the structural similarity algorithm
