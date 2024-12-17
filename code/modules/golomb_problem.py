@@ -8,6 +8,7 @@ import numpy as np
 import scipy
 import time
 import PIL
+import SSIM_PIL
 
 from matplotlib import pyplot as plt
 import matplotlib.cm as cm
@@ -190,7 +191,7 @@ class orbital_golomb_array:
         return self.fitness_impl(x, plotting=True, figsize=figsize)
 
     def plot_simulated_reconstruction(
-        self, x, M=100, grid_size=256, image_path="data/nebula.jpg"
+        self, x, M=100, grid_size=256, image_path="data/nebula.jpg", plot_image=True
     ):
         """_summary_
 
@@ -279,7 +280,7 @@ class orbital_golomb_array:
                 gs_yz[k][j, k_] = 1
                 g_yz[j, k_] = 1
 
-        def plot_recon(gs, g):
+        def plot_recon(gs, g, plot=True):
             # We Simulate the interferometric measurement
             otf = np.zeros((grid_size * 2 - 1, grid_size * 2 - 1))
             for one_g in gs:
@@ -294,7 +295,8 @@ class orbital_golomb_array:
             imo_fft = np.fft.fft2(I_o)
             imr_fft = imo_fft * otf  # Hadamard product here
             I_r = abs(np.fft.ifft2(imr_fft))
-
+            if plot is False:
+                return I_r
             # We plot
             fig = plt.figure(figsize=(15, 3))
             ax = fig.subplots(1, 4)
@@ -312,6 +314,12 @@ class orbital_golomb_array:
             ax[3].set_title("Optical Transfer Function")
             plt.show()
 
+        if plot_image is False :
+            return (
+                plot_recon(gs_xy, None, plot=plot_image), 
+                plot_recon(gs_xz, None, plot=plot_image), 
+                plot_recon(gs_yz, None, plot=plot_image)
+            )
         print('XY')
         plot_recon(gs_xy, g_xy)
         print('XZ')
@@ -798,3 +806,15 @@ def compute_n_unique_dist_on_xy_xz_yz(pos3D) -> tuple[int,int,int]:
         unique_of_distance(distance_xz),
         unique_of_distance(distance_yz)
     )
+
+def similarity_chk(udp: orbital_golomb_array, x_encoded: list[(float,float,float)], n_orb: int = 300, image_path: str ="../data/nebula.jpg"):
+    # Aight, here we gettin' some reconstructed images based on the encoded data and measurables
+    I_r_images = udp.plot_simulated_reconstruction(x_encoded, n_orb, image_path=image_path, plot_image=False)
+    # Now we open up the main image and resize it to match the first reconstructed image dimensions
+    I_o = PIL.Image.open(image_path).resize(I_r_images[0].shape[::-1])
+    # We gonna convert those reconstructed images to grayscale, feel me?
+    rec_images_bw = [PIL.Image.fromarray(img.astype('uint8'), mode='L') for img in I_r_images]
+    # Compare dem similarity values between the images, ya dig?
+    values = [SSIM_PIL.compare_ssim(I_o, rec_img, GPU=False) for rec_img in rec_images_bw]
+    # Now let's spit out those values for ya
+    return values
