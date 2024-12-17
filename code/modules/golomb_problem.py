@@ -318,12 +318,26 @@ class orbital_golomb_array:
                 plot_recon(gs_xz, None, plot=plot_image), 
                 plot_recon(gs_yz, None, plot=plot_image)
             )
-        print('XY')
+
+        I_r_images = [
+            plot_recon(gs_xy, None, plot=False),
+            plot_recon(gs_xz, None, plot=False),
+            plot_recon(gs_yz, None, plot=False)
+        ]
+        # Now we open up the main image and resize it to match the first reconstructed image dimensions
+        I_o = PIL.Image.open(image_path).resize(I_r_images[0].shape[::-1])
+        # We gonna convert those reconstructed images to grayscale, feel me?
+        rec_images_bw = [PIL.Image.fromarray(img.astype('uint8'), mode='L') for img in I_r_images]
+        # Compare dem similarity values between the images, ya dig?
+        values = [SSIM_PIL.compare_ssim(I_o, rec_img, GPU=False) for rec_img in rec_images_bw]
+        # Now let's spit out those values for ya
+        print('XY\t''SSIM = %.4f%%' %(values[0]*100))
         plot_recon(gs_xy, g_xy)
-        print('XZ')
+        print('XZ\t''SSIM = %.4f%%' %(values[1]*100))
         plot_recon(gs_xz, g_xz)
-        print('YZ')
+        print('YZ\t''SSIM = %.4f%%' %(values[2]*100))
         plot_recon(gs_yz, g_yz)
+
 
     # Here is where the action takes place
     def fitness_impl(
@@ -832,7 +846,6 @@ def compute_unique_distances_and_sats_in_grid(udp: orbital_golomb_array, solutio
 
 
 #  --- --- ---  --- --- ---  --- --- ---  --- --- ---  --- --- ---
-
 def similarity_chk(udp: orbital_golomb_array, x_encoded: list[(float,float,float)], n_orb: int = 300, image_path: str ="../data/nebula.jpg"):
     # Aight, here we gettin' some reconstructed images based on the encoded data and measurables
     I_r_images = udp.plot_simulated_reconstruction(x_encoded, n_orb, image_path=image_path, plot_image=False)
