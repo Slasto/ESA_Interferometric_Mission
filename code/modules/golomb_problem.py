@@ -763,11 +763,8 @@ def x_encoded_into_grid_on_t_meas(UDP: orbital_golomb_array, x_encoded : list[(f
 
 def compute_n_unique_dist_on_xy_xz_yz(pos3D) -> tuple[int,int,int]:
     """
-    Compute the number of duplicates distance across three coordinate planes (xy, xz, yz).
-
-    This function calculates the Pairwise between each pair of points in the
-    xy, xz, and yz planes. It then checks if any non-zero distance occurs more than once
-    in each plane.
+    Compute the number of unique distances across three coordinate planes (xy, xz, yz) 
+    by evaluating the Manhattan distance between each pair of points.
 
     Args:
         pos3D (`list[tuple[float, float, float]]`): A list of tuples where each tuple
@@ -777,27 +774,22 @@ def compute_n_unique_dist_on_xy_xz_yz(pos3D) -> tuple[int,int,int]:
         `Tuple[int,int,int]` : (duplicate_distance_xy, duplicate_distance_xz, duplicate_distance_yz)
     """
 
-    def unique_of_distance(distances) -> int:
+    def unique_of_distance(distances: list[float]) -> int:
         """Helper function to check if there are duplicate distances in a given list of distances."""
-        unique = 0
-        for distance, n_repetitions in Counter(distances).items():
-            if n_repetitions < 2 or distance == 0:
-                unique += 1
-        return unique
+        return sum(1 for distance, n_repetitions in Counter(distances).items() if n_repetitions < 2 or distance == 0)
 
-    distance_xy = []
-    distance_xz = []
-    distance_yz = []
+    def compute_plane_distances(points: list[tuple[float, float]]) -> list[float]:
+        """Compute the Manhattan distance between pairs of points in the same plane."""
+        return [abs(u_1 - u_2) + abs(v_1 - v_2) for (u_1, v_1), (u_2, v_2) in combinations(set(points), 2)]
 
-    for (x1,y1,z1), (x2,y2,z2) in combinations(pos3D, 2):
-        distance_xy.append(np.sqrt(abs(x1 - x2)**2 + abs(y1 - y2)**2))
-        distance_xz.append(np.sqrt(abs(x1 - x2)**2 + abs(z1 - z2)**2))
-        distance_yz.append(np.sqrt(abs(y1 - y2)**2 + abs(z1 - z2)**2))
+    xy_points = [(x, y) for x, y, _ in pos3D]
+    xz_points = [(x, z) for x, _, z in pos3D]
+    yz_points = [(y, z) for _, y, z in pos3D]
 
     return (
-        unique_of_distance(distance_xy),
-        unique_of_distance(distance_xz),
-        unique_of_distance(distance_yz)
+        unique_of_distance(compute_plane_distances(xy_points)),
+        unique_of_distance(compute_plane_distances(xz_points)),
+        unique_of_distance(compute_plane_distances(yz_points))
     )
 
 def compute_unique_distances_and_sats_in_grid(udp: orbital_golomb_array, solution: list[float]) -> tuple[float, float]:
@@ -829,7 +821,6 @@ def compute_unique_distances_and_sats_in_grid(udp: orbital_golomb_array, solutio
     distances_score /= n_distances * udp.n_meas
     sats_in_grid_score /= (udp.n_sat * udp.n_meas * 3)
     return distances_score, sats_in_grid_score
-
 
 #  --- --- ---  --- --- ---  --- --- ---  --- --- ---  --- --- ---
 

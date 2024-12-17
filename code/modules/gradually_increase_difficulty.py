@@ -22,11 +22,10 @@ def show_table_of_solutions(result: dict) -> None:
     table_header = "| N_sats | Fitness | Diverse Distances [%] | Satellites in Grid [%] | \n|---|---|---|---|\n"
     for n_sats, values in result.items():
         fitness = values["fitness"]
-        diverse_distances_metric = values["diverse_distances_metric"]
-        satellites_in_grid = values["satellites_in_grid"]
-        table_header += f"| {n_sats} | {fitness:.4f} | {diverse_distances_metric:.4f} | {satellites_in_grid:.4f} |\n"
+        diverse_distances_metric = values["diverse_distances_metric"] * 100
+        satellites_in_grid = values["satellites_in_grid"] *100
+        table_header += f"| {n_sats} | {(fitness):.4f} | {diverse_distances_metric:.2f} | {satellites_in_grid:.2f} |\n"
     display(Markdown(table_header))
-
 
 def increase_difficulty(
     udp: orbital_golomb_array, n_sats_range: range, optimizer : callable, verbose : bool = False, file_name: str = None
@@ -65,7 +64,7 @@ def increase_difficulty(
         }
     if verbose :
         clear_output()
-        plot_results(result)
+        plot_results(result, file_name)
         show_table_of_solutions(result)
 
     if file_name is not None:
@@ -73,10 +72,11 @@ def increase_difficulty(
         with open(f"logs/{file_name}.log", "w") as file:
             file.write(str(result))
         print(f"Log has been saved in 'logs/{file_name}.log'")
+        print(f"Plot has been saved in 'logs/{file_name}.svg'")
 
     return result
 
-def plot_results(result: dict):
+def plot_results(result: dict, file_name : str = None):
     n_sats = list(result.keys())
     fitness = [result[n]["fitness"] for n in n_sats]
     diverse_distances = [result[n]["diverse_distances_metric"] for n in n_sats]
@@ -101,7 +101,11 @@ def plot_results(result: dict):
     axs[2].set_xlabel('Number of Satellites')
     axs[2].set_ylabel('Satellites in Grid [%]')
     axs[2].grid(True)
-
-
+    
     plt.tight_layout()
+
+    if file_name :
+        plt.savefig(f'logs/{file_name}.svg', format='svg')
+
     plt.show()
+    plt.close(fig)
