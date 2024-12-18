@@ -1,6 +1,7 @@
 from modules.golomb_problem import (
     orbital_golomb_array,
-    compute_unique_distances_and_sats_in_grid
+    compute_unique_distances_and_sats_in_grid,
+    similarity_chk
 )
 from IPython.display import display, Markdown, clear_output
 import matplotlib.pyplot as plt
@@ -19,12 +20,14 @@ def show_table_of_solutions(result: dict) -> None:
                        - "diverse_distances_metric": A float value representing the diverse distance metric.
                        - "satellites_in_grid": A float value indicating the percentage of satellites in the grid.
     """
-    table_header = "| N_sats | Fitness | Diverse Distances [%] | Satellites in Grid [%] | \n|---|---|---|---|\n"
+    table_header = "| N_sats | Original Fitness | Diverse Distances [%] | Satellites in Grid [%] | SSIM (xy,xz,yz) [%] | \n|---|---|---|---| --- |\n"
     for n_sats, values in result.items():
         fitness = values["fitness"]
         diverse_distances_metric = values["diverse_distances_metric"] * 100
         satellites_in_grid = values["satellites_in_grid"] *100
-        table_header += f"| {n_sats} | {(fitness):.4f} | {diverse_distances_metric:.2f} | {satellites_in_grid:.2f} |\n"
+        ssim_score = [round(i*100,2) for i in values["ssim"]]
+        
+        table_header += f"| {n_sats} | {(fitness):.4f} | {diverse_distances_metric:.2f} | {satellites_in_grid:.2f} | {ssim_score} |\n"
     display(Markdown(table_header))
 
 def increase_difficulty(
@@ -49,30 +52,34 @@ def increase_difficulty(
 
     for n_sats in tqdm(n_sats_range, "Optimization on"):
         if verbose:
-            clear_output()
             show_table_of_solutions(result)
             display(Markdown("---"))
         golomb_fitness, solution = optimizer(udp, n_sats, verbose)
 
         distances_score, sats_in_grid_score = compute_unique_distances_and_sats_in_grid(udp,solution)
-
+        ssim_score = similarity_chk(udp, solution, n_orb=300)
         result[n_sats] = {
             "fitness": golomb_fitness,
             "diverse_distances_metric": distances_score,
             "satellites_in_grid": sats_in_grid_score,
             "x_encoded": solution,
+            "ssim": ssim_score
         }
+        if verbose :
+            clear_output()
+
+    if file_name is not None:
+        os.makedirs("logs", exist_ok=True)
+
     if verbose :
         clear_output()
         plot_results(result, file_name)
         show_table_of_solutions(result)
 
     if file_name is not None:
-        os.makedirs("logs", exist_ok=True)
         with open(f"logs/{file_name}.log", "w") as file:
             file.write(str(result))
-        print(f"Log has been saved in 'logs/{file_name}.log'")
-        print(f"Plot has been saved in 'logs/{file_name}.svg'")
+        print("Log and plot have been saved in the 'logs' folder")
 
     return result
 
@@ -104,8 +111,39 @@ def plot_results(result: dict, file_name : str = None):
     
     plt.tight_layout()
 
-    if file_name :
-        plt.savefig(f'logs/{file_name}.svg', format='svg')
+    if file_name is not None:
+        plt.savefig(f'logs/{file_name}_score.svg', format='svg')
 
     plt.show()
     plt.close(fig)
+    plot_ssim(result, file_name)
+
+
+def plot_ssim(result: dict, file_name : str = None):
+    n_sats = list(result.keys())
+    ssim = [result[n]["ssim"] for n in n_sats]
+
+    ssim_xy = [score[0] for score in ssim]
+    ssim_xz = [score[1] for score in ssim]
+    ssim_yz = [score[2] for score in ssim]
+
+    fig, ax = plt.subplots(figsize=(14, 4))
+
+    ax.plot(n_sats, ssim_xy, marker='o', linestyle='-', label='SSIM XY')
+    ax.plot(n_sats, ssim_xz, marker='o', linestyle='-', label='SSIM XZ')
+    ax.plot(n_sats, ssim_yz, marker='o', linestyle='-', label='SSIM YZ')
+
+    ax.set_title('SSIM Components per Number of Satellites')
+    ax.set_xlabel('Number of Satellites')
+    ax.set_ylabel('SSIM')
+    ax.legend()
+    ax.grid(True)
+
+    plt.tight_layout()
+    if file_name is not None :
+        plt.savefig(f'logs/{file_name}_ssim.svg', format='svg')
+
+    plt.show()
+    plt.close(fig)
+
+    
