@@ -1,5 +1,4 @@
-import numpy as np
-import plotly.graph_objects as go
+from matplotlib import pyplot as plt
 from IPython.display import display, Markdown
 from modules.golomb_problem import orbital_golomb_array, x_encoded_into_grid_on_t_meas, compute_unique_distances_and_sats_in_grid
 
@@ -35,7 +34,45 @@ def print_result(udp : orbital_golomb_array, x_solution, N_obs : int = 300, show
     udp.plot(x_solution, figsize=(25,7))
 
     if show_simulated_reconstruction:
-        plot_simulated_reconstruction(udp, x_solution, N_obs)  
+        plot_simulated_reconstruction(udp, x_solution, N_obs)
+    plt.close('all')
+
+def plot_fitness_improvement(evolution):
+    """
+    Plots the fitness improvement over generations or iterations.
+
+    Args:
+        evolution (`object` or `list`): An object or a list representing the evolution data. 
+        The object should either have a method `get_log()` or an attribute `history`, 
+        containing the fitness information. If a list is provided, it is treated as the fitness values directly.
+
+    Raises:
+        ValueError: If the `evolution` object does not have the expected attributes or is not a list.
+    """
+    if hasattr(evolution, 'get_log'):
+        generations = range(len(evolution.get_log()))
+        fitness_values = [log[2] for log in evolution.get_log()]
+    elif hasattr(evolution, 'history'):
+        generations = range(len(evolution.history))
+        fitness_values = [log['fitness'] for log in evolution.history]
+    elif isinstance(evolution, list):
+        generations = range(len(evolution))
+        fitness_values = evolution  # Use list values as fitness values
+    else:
+        raise ValueError("Unsupported evolution object")
+
+    plt.figure(figsize=(15,7))
+    plt.margins(0.01)
+    plt.grid(True)
+    plt.plot(generations, fitness_values, label='Fitness Over Generations')
+    # min_fitness_index = fitness_values.index(min(fitness_values))
+    # plt.axvline(x=min_fitness_index, color='r', linestyle='--', label=f'First Minimum Fitness:{min_fitness_index}')
+    plt.xticks(ticks=range(0, len(generations)+1, max(1, len(generations) // 25))) # one tick every len(generations)/25
+    plt.xlabel('Generations|Iterations')
+    plt.ylabel('Fitness')
+    plt.title('Fitness Improvement Over Generations|Iterations')
+    plt.legend()
+    plt.show()
 
 def plot_in_3D_space(UDP: orbital_golomb_array, x_encoded : list[(float,float,float)], meas : int = 2) -> None:
     """
@@ -46,7 +83,7 @@ def plot_in_3D_space(UDP: orbital_golomb_array, x_encoded : list[(float,float,fl
         x_encoded (`list[(float,float,float)]`): Encoded positions of the satellites.
         meas (`int`, optional): Measurement index. Defaults to 2.
     """
-    
+    import plotly.graph_objects as go
     points = x_encoded_into_grid_on_t_meas(UDP, x_encoded, meas)
     x_data, y_data, z_data = zip(*points)
 
@@ -65,7 +102,7 @@ def plot_in_3D_space(UDP: orbital_golomb_array, x_encoded : list[(float,float,fl
     ))
 
     # Configura la grigpointslia quadrata (una linea ogni 1 unità)
-    tick_plot = np.arange(0, UDP.grid_size, 1)
+    tick_plot = [i for i in range(0, UDP.grid_size, 1)]
     range_plot = [0, UDP.grid_size]
 
     fig.update_layout(
