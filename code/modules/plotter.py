@@ -50,8 +50,8 @@ def plot_fitness_improvement(evolution):
         ValueError: If the `evolution` object does not have the expected attributes or is not a list.
     """
     if hasattr(evolution, 'get_log'):
-        generations = range(len(evolution.get_log()))
-        fitness_values = [log[2] for log in evolution.get_log()]
+        generations = range(1, (len(evolution.get_log())*2)+1)
+        fitness_values = [log[2] for log in evolution.get_log() for _ in (0, 1)]
     elif hasattr(evolution, 'history'):
         generations = range(len(evolution.history))
         fitness_values = [log['fitness'] for log in evolution.history]
@@ -67,8 +67,9 @@ def plot_fitness_improvement(evolution):
     plt.plot(generations, fitness_values, label='Fitness Over Generations')
     # min_fitness_index = fitness_values.index(min(fitness_values))
     # plt.axvline(x=min_fitness_index, color='r', linestyle='--', label=f'First Minimum Fitness:{min_fitness_index}')
-    plt.xticks(ticks=range(0, len(generations)+1, max(1, len(generations) // 25))) # one tick every len(generations)/25
+    plt.xticks(ticks=range(1, len(generations)+2, max(1, len(generations) // 25))) # one tick every len(generations)/25
     plt.xlabel('Generations|Iterations')
+    plt.xlim(left=1)
     plt.ylabel('Fitness')
     plt.title('Fitness Improvement Over Generations|Iterations')
     plt.legend()
