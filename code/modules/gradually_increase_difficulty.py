@@ -9,7 +9,7 @@ from tqdm import tqdm
 import os
 
 def increase_difficulty(
-    udp: orbital_golomb_array, n_sats_range: range, optimizer : callable, verbose : bool = False, file_name: str = None
+    udp: orbital_golomb_array, n_sats_range: range, optimizer : callable, verbose : bool = True, file_name: str = None
 ) -> list[tuple[float, list[float]]]:
     """
     Increase the difficulty of finding optimal solutions by iterating over a range of satellite numbers.
@@ -29,14 +29,17 @@ def increase_difficulty(
     result = dict()
 
     for n_sats in tqdm(n_sats_range, "Optimization on"):
+        udp.n_sat = n_sats
+        
         if verbose:
             show_table_of_solutions(result)
             display(Markdown("---"))
-        golomb_fitness, solution = optimizer(udp, n_sats, verbose)
+            
+        golomb_fitness, solution = optimizer(udp)
 
         distances_score, sats_in_grid_score = compute_unique_distances_and_sats_in_grid(udp,solution)
         ssim_score = similarity_chk(udp, solution, n_orb=300)
-        result[n_sats] = {
+        result[udp.n_sat] = {
             "fitness": golomb_fitness,
             "diverse_distances_metric": distances_score,
             "satellites_in_grid": sats_in_grid_score,
