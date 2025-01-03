@@ -14,6 +14,15 @@
 > ci dobbiamo coordinare per chi lo esegue prima perchè si modifica lo stesso file, notebook cringe 
 
 ### Dimensione generale
-**Grandezza popolazioni**: n_dimensioni * 3 (es nel semplice 5 satelliti => 5 * 6 * 3 = 90)
-**Numero iterazioni**: n_dimensioni * 10 (es nel semplice 5 satelliti => 5 * 3 = 300)
+- **Grandezza popolazioni**: n_dimensioni * 3 (es nel semplice 5 satelliti => (5 * 6) * 3 = 90) se si sta facendo il problema con *Force Golomb* allora le iterazioni sono moltiplicate per 1.5
+- **Numero iterazioni**: n_dimensioni * 10 (es nel semplice 5 satelliti => (5 * 6) * 3 = 300)
 
+```python
+def get_n_iteration(n_sats: int, force_golomb : bool = False):
+    if force_golomb :
+        return int(n_sats * 6 * 10 * 1.5)
+    return n_sats * 6 * 10 
+
+def get_population_size(n_sats: int):
+    return n_sats * 6 * 3
+```
