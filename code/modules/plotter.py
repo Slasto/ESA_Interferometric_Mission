@@ -54,7 +54,7 @@ def print_result(udp: orbital_golomb_array, x_solution, N_obs: int = 300, show_s
         fitness = udp.fitness(x_solution)[0]
         print(f"Solution: {x_solution}")
 
-    print(f"Default Fitness: {fitness:.7f}\tDiverse Distances [%]: {(distance * 100):.4f}\tSatellites in Grid [%]: {(sat * 100):.4f}")
+    print(f"Default Fitness: {fitness:.7f}\tUnique Distances [%]: {(distance * 100):.4f}\tSatellites in Grid [%]: {(sat * 100):.4f}")
     udp.plot(x_solution, figsize=(25, 7))
     if show_simulated_reconstruction:
         plot_simulated_reconstruction(udp, x_solution, N_obs)
