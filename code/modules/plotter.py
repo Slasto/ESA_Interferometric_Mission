@@ -40,21 +40,30 @@ def print_result(udp: orbital_golomb_array, x_solution, N_obs: int = 300, show_s
             fitness.append(fitness_score)
 
         # mean of all score
+        #best_solution_idx = sorted( #crescente
+        #range(len(fitness)),
+        #key=lambda i: (
+        #    (round(fitness[i],2), -round(distance[i]/5,2), -sat[i]) # cosi da minimizzare
+        #    ),
+        #reverse=False
+        #)
+        #best_solution_idx = best_solution_idx[0]
         best_solution_idx = fitness.index(min(fitness))
-
-        distance = sum(distance) / len(distance)
-        sat = sum(sat) / len(sat)
-        fitness = sum(fitness) / len(fitness)
-
+        #print(f"Fitness vector: {fitness}")
+        print("--- --- ---")
+        print(f"**Score is mean of {len(x_solution)} iterations**")
+        print(f"Default Fitness: {(sum(fitness) / len(fitness)):.7f}\tUnique Distances [%]: {((sum(distance) / len(distance)) * 100):.4f}\tSatellites in Grid [%]: {((sum(sat) / len(sat)) * 100):.4f}")
+        print("--- --- ---")
         print(f"Best solution: {x_solution[best_solution_idx]}")
-        print(f"**Score is mean of {len(x_solution)} iterations and only the best solution is plotted**")
+        print(f"Default Fitness: {fitness[best_solution_idx]:.7f}\tUnique Distances [%]: {(distance[best_solution_idx] * 100):.4f}\tSatellites in Grid [%]: {(sat[best_solution_idx] * 100):.4f}")
         x_solution = x_solution[best_solution_idx]
     else:
         distance, sat = compute_unique_distances_and_sats_in_grid(udp, x_solution)
         fitness = udp.fitness(x_solution)[0]
         print(f"Solution: {x_solution}")
+        print(f"Default Fitness: {fitness:.7f}\tUnique Distances [%]: {(distance * 100):.4f}\tSatellites in Grid [%]: {(sat * 100):.4f}")
 
-    print(f"Default Fitness: {fitness:.7f}\tUnique Distances [%]: {(distance * 100):.4f}\tSatellites in Grid [%]: {(sat * 100):.4f}")
+    
     udp.plot(x_solution, figsize=(25, 7))
     if show_simulated_reconstruction:
         plot_simulated_reconstruction(udp, x_solution, N_obs)
