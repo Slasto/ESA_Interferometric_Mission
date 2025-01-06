@@ -4,7 +4,7 @@
 - [ ] Su tutti fare tutti i plot, ovvero
 **print_result**(show_simulated_reconstruction=True)
 **plot_fitness_improvement**() dare in ingresso un *vettore con le fitness calcolate ad ogni iterazione*
-- [ ] Fare che ogni algoritmo viene lanciato **5 volte** sullo stesso problema in modo da mediare i risultati, Ad ogni iterazione:
+- [ ] Fare che ogni algoritmo viene lanciato **8 volte** sullo stesso problema in modo da mediare i risultati, Ad ogni iterazione:
     - mettere la nuova soluzione in un vettore in modo da **ottenere un vettore di soluzioni** \[\[soluzione prima iterazione\], \[soluzione seconda iterazione\], ...\] una volta finite le iterazioni passare il vettore a print_result
     - Calcolare la **media dei 5 vettori fitness** e passarla a plot_fitness_improvement
 

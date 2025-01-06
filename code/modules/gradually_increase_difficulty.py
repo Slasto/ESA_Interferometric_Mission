@@ -6,6 +6,8 @@ from modules.golomb_problem import (
 from IPython.display import display, Markdown, clear_output
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import pickle
+import copy
 import os
 
 def increase_difficulty(
@@ -26,26 +28,46 @@ def increase_difficulty(
         `list[tuple[float, list[float]]]`: A list of tuples with each tuple containing the fitness score and the
                                           corresponding solution for each satellite count.
     """
-    result = dict()
-
+    result, udp = dict(), copy.copy(udp)
     for n_sats in tqdm(n_sats_range, "Optimization on"):
         udp.n_sat = n_sats
         
         if verbose:
             show_table_of_solutions(result)
             display(Markdown("---"))
-            
+         
         golomb_fitness, solution = optimizer(udp)
-
         distances_score, sats_in_grid_score = compute_unique_distances_and_sats_in_grid(udp,solution)
         ssim_score = similarity_chk(udp, solution, n_orb=300)
         result[udp.n_sat] = {
             "fitness": golomb_fitness,
             "diverse_distances_metric": distances_score,
             "satellites_in_grid": sats_in_grid_score,
-            "x_encoded": solution,
-            "ssim": ssim_score
+            "ssim": ssim_score,
+            "x_encoded": solution
         }
+        
+        # mean, golomb_fitness, distances_score, sats_in_grid_score, ssim_score, solution = 3 ,[], 0, 0, [], []
+        # for _ in range(mean) :
+        #     fitness, x = optimizer(udp)
+        # 
+        #     distances, sats_in_grid = compute_unique_distances_and_sats_in_grid(udp, x)
+        #     ssim = similarity_chk(udp, x, n_orb=300)
+        #     
+        #     distances_score += distances
+        #     sats_in_grid_score += sats_in_grid
+        #     ssim_score =[a+b for a,b in zip(ssim_score, ssim)]
+        #     golomb_fitness =[a+b for a,b in zip(golomb_fitness, fitness)]
+        #     solution.append(x)
+        # 
+        # result[udp.n_sat] = {
+        #     "fitness": [a/mean for a,b in golomb_fitness],
+        #     "diverse_distances_metric": distances_score/mean,
+        #     "satellites_in_grid": sats_in_grid_score/mean,
+        #     "ssim": [i/mean for i in ssim_score],
+        #     "x_encoded": solution
+        # }
+
         if verbose :
             clear_output()
 
@@ -54,12 +76,12 @@ def increase_difficulty(
 
     if verbose :
         clear_output()
-        plot_results(result, file_name)
+        plot_results(result)
         show_table_of_solutions(result)
 
     if file_name is not None:
-        with open(f"logs/{file_name}.log", "w") as file:
-            file.write(str(result))
+        with open('data.pkl', 'wb') as f:
+            pickle.dump(result, f)
         print("Log and plot have been saved in the 'logs' folder")
 
     return result
@@ -82,10 +104,10 @@ def show_table_of_solutions(result: dict) -> None:
         satellites_in_grid = values["satellites_in_grid"] *100
         ssim_score = [round(i*100,2) for i in values["ssim"]]
         
-        table_header += f"| {n_sats} | {(fitness):.4f} | {diverse_distances_metric:.2f} | {satellites_in_grid:.2f} | {ssim_score} |\n"
+        table_header += f"| {n_sats} | {fitness} | {diverse_distances_metric:.2f} | {satellites_in_grid:.2f} | {ssim_score} |\n"
     display(Markdown(table_header))
 
-def plot_results(result: dict, file_name : str = None):
+def plot_results(result: dict):
     n_sats = list(result.keys())
     fitness = [result[n]["fitness"] for n in n_sats]
     diverse_distances = [result[n]["diverse_distances_metric"] for n in n_sats]
@@ -93,16 +115,20 @@ def plot_results(result: dict, file_name : str = None):
 
     fig, axs = plt.subplots(1, 3, figsize=(14, 4))
 
-    axs[0].plot(n_sats, fitness, marker='o', linestyle='-')
-    axs[0].set_title('Golomb Fitness')
+    if isinstance(fitness[0], (list, tuple)) :
+        for i in range(len(fitness[0])) :
+            axs[0].plot(n_sats, [sub_values[i] for sub_values in fitness], marker='o', linestyle='-')
+    else:
+        axs[0].plot(n_sats, fitness, marker='o', linestyle='-')
+    axs[0].set_title('Fitness')
     axs[0].set_xlabel('Number of Satellites')
     axs[0].set_ylabel('Fitness')
     axs[0].grid(True)
 
     axs[1].plot(n_sats, diverse_distances, marker='o', linestyle='-', color='orange')
-    axs[1].set_title('Diverse Distances Metric')
+    axs[1].set_title('Unique Distances')
     axs[1].set_xlabel('Number of Satellites')
-    axs[1].set_ylabel('Diverse Distances [%]')
+    axs[1].set_ylabel('Unique Distances [%]')
     axs[1].grid(True)
 
     axs[2].plot(n_sats, satellites_in_grid, marker='o', linestyle='-', color='green')
@@ -113,14 +139,11 @@ def plot_results(result: dict, file_name : str = None):
     
     plt.tight_layout()
 
-    if file_name is not None:
-        plt.savefig(f'logs/{file_name}_score.svg', format='svg')
-
     plt.show()
     plt.close(fig)
-    plot_ssim(result, file_name)
+    plot_ssim(result)
 
-def plot_ssim(result: dict, file_name : str = None):
+def plot_ssim(result: dict):
     n_sats = list(result.keys())
     ssim = [result[n]["ssim"] for n in n_sats]
 
@@ -141,8 +164,6 @@ def plot_ssim(result: dict, file_name : str = None):
     ax.grid(True)
 
     plt.tight_layout()
-    if file_name is not None :
-        plt.savefig(f'logs/{file_name}_ssim.svg', format='svg')
 
     plt.show()
     plt.close(fig)
