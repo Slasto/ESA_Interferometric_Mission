@@ -80,11 +80,16 @@ def increase_difficulty(
         show_table_of_solutions(result)
 
     if file_name is not None:
-        with open('data.pkl', 'wb') as f:
+        with open(f'logs/{file_name}.pkl', 'wb') as f:
             pickle.dump(result, f)
         print("Log and plot have been saved in the 'logs' folder")
 
     return result
+
+def read_log(file_name: str):
+        if file_name is not None:
+            with open(f'logs/{file_name}.pkl', 'rb') as f:
+                return pickle.load(f)
 
 def show_table_of_solutions(result: dict) -> None:
     """
