@@ -31,7 +31,7 @@ def gwo(fitness, max_iter, num_particles, dim, minx, maxx, verbose=True):
         y(`list` of length N): Chromosome contains position of the best solution found.
     """
     if verbose:
-      print("\nBegin grey wolf optimization on rastrigin function\n") 
+      print("\nBegin grey wolf optimization\n") 
       print("Setting num_particles = " + str(num_particles)) 
       print("Setting max_iter    = " + str(max_iter)) 
       print("\nStarting GWO algorithm\n") 
@@ -48,6 +48,7 @@ def gwo(fitness, max_iter, num_particles, dim, minx, maxx, verbose=True):
     # best 3 solutions will be called as  
     # alpha, beta and gaama 
     alpha_wolf, beta_wolf, gamma_wolf = copy.copy(population[: 3]) 
+    vet_fitness_alpha = []
   
   
     # main loop of gwo 
@@ -99,6 +100,8 @@ def gwo(fitness, max_iter, num_particles, dim, minx, maxx, verbose=True):
         # best 3 solutions will be called as  
         # alpha, beta and gaama 
         alpha_wolf, beta_wolf, gamma_wolf = copy.copy(population[: 3]) 
+        vet_fitness_alpha.append(fitness(alpha_wolf.position))
+
           
         Iter+= 1
     # end-while 
@@ -108,6 +111,6 @@ def gwo(fitness, max_iter, num_particles, dim, minx, maxx, verbose=True):
       print(["%.6f"%alpha_wolf.position[k] for k in range(dim)]) 
       fitness_minimum_gwo = fitness(alpha_wolf.position)  
       print("fitness of best solution = %.6f" % fitness_minimum_gwo) 
-      print("\nEnd GWO for rastrigin\n") 
+      print("\nEnd GWO\n") 
     # returning the best solution 
-    return alpha_wolf.position 
+    return alpha_wolf.position, vet_fitness_alpha 
