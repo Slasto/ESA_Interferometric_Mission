@@ -1,3 +1,4 @@
+import array
 import numpy as np
 from matplotlib import pyplot as plt
 from IPython.display import display, Markdown
@@ -27,7 +28,7 @@ def print_result(udp: orbital_golomb_array, x_solution, N_obs: int = 300, show_s
         show_simulated_reconstruction (`bool`, optional): Indicates whether to show the image reconstruction of 'star.jpeg' and 'nebula.jpeg'.
     """
     print("N sat: ", udp.n_sat, "\tGrid size: ", udp.grid_size)
-    if isinstance(x_solution[0], (list, np.ndarray)):
+    if isinstance(x_solution[0], (list, np.ndarray, array)):
         # then x_solution is a vector of solutions
         distance, sat, fitness = [], [], []
         for solution in x_solution:
