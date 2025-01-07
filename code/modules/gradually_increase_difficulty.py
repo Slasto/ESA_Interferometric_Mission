@@ -6,6 +6,7 @@ from modules.golomb_problem import (
 from IPython.display import display, Markdown, clear_output
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import random
 import pickle
 import copy
 import os
@@ -36,7 +37,7 @@ def increase_difficulty(
             show_table_of_solutions(result)
             display(Markdown("---"))
          
-        golomb_fitness, solution = optimizer(udp)
+        golomb_fitness, solution = optimizer(udp, verbose)
         distances_score, sats_in_grid_score = compute_unique_distances_and_sats_in_grid(udp,solution)
         ssim_score = similarity_chk(udp, solution, n_orb=300)
         result[udp.n_sat] = {
@@ -80,7 +81,66 @@ def increase_difficulty(
         show_table_of_solutions(result)
 
     if file_name is not None:
-        with open(f'logs/{file_name}.pkl', 'wb') as f:
+        with open(f'logs/GID_{file_name}.pkl', 'wb') as f:
+            pickle.dump(result, f)
+        print("Log and plot have been saved in the 'logs' folder")
+
+    return result
+
+def gradually_add_sat_to_solution(
+    udp: orbital_golomb_array,base : int,  until: int, optimizer : callable, verbose : bool = True, file_name: str = None
+) -> list[tuple[float, list[float]]]:
+    """
+    Increase the difficulty of finding optimal solutions by iterating over a range of satellite numbers.
+
+    Args:
+        udp (`orbital_golomb_array`): The orbital Golomb problem data structure.
+        n_sats_range (`range`): The range of satellite counts to optimize over.
+        optimizer (`callable`): A function that takes udp and n_sats as arguments and returns a tuple
+                              of golomb_fitness and a solution (list of floats).
+        print_table (bool, optional): Whether to display the solutions table after each iteration. Defaults to False.
+        file_name (`str`, optional): If provided, the results will be saved to 'logs/{file_name}.log'. Defaults to None.
+
+    Returns:
+        `list[tuple[float, list[float]]]`: A list of tuples with each tuple containing the fitness score and the
+                                          corresponding solution for each satellite count.
+    """
+    result, udp , x_0 = dict(),copy.copy(udp), None
+    for n_sats in tqdm(range(base, until+1), "Optimization on"):
+        udp.n_sat = n_sats
+        
+        if verbose:
+            show_table_of_solutions(result)
+            display(Markdown("---"))
+
+        if x_0 is not None:
+            for i in range(6) :
+                x_0.insert(i * (n_sats), random.random())
+
+        golomb_fitness, solution = optimizer(udp, x_0, verbose)
+        distances_score, sats_in_grid_score = compute_unique_distances_and_sats_in_grid(udp,solution)
+        ssim_score = similarity_chk(udp, solution, n_orb=300)
+        result[udp.n_sat] = {
+            "fitness": golomb_fitness,
+            "diverse_distances_metric": distances_score,
+            "satellites_in_grid": sats_in_grid_score,
+            "ssim": ssim_score,
+            "x_encoded": solution
+        }
+
+        if verbose :
+            clear_output()
+
+    if file_name is not None: 
+        os.makedirs("logs/", exist_ok=True)
+
+    if verbose :
+        clear_output()
+        plot_results(result)
+        show_table_of_solutions(result)
+
+    if file_name is not None:
+        with open(f'logs/GAS_{file_name}.pkl', 'wb') as f:
             pickle.dump(result, f)
         print("Log and plot have been saved in the 'logs' folder")
 
@@ -172,5 +232,3 @@ def plot_ssim(result: dict):
 
     plt.show()
     plt.close(fig)
-
-    

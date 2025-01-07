@@ -50,6 +50,7 @@ def print_result(udp: orbital_golomb_array, x_solution, N_obs: int = 300, show_s
         #)
         #best_solution_idx = best_solution_idx[0]
         best_solution_idx = fitness.index(min(fitness))
+        print(f"LOG:\nfitness: {fitness_score}\ndistances: {distance}\nsats: {sat}")
         #print(f"Fitness vector: {fitness}")
         print("--- --- ---")
         print(f"**Score is mean of {len(x_solution)} iterations**")
