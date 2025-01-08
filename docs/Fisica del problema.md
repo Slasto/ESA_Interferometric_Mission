@@ -1,19 +1,20 @@
 # Circular Restricted Three-Body Problem
+
 [src](https://orbital-mechanics.space/the-n-body-problem/circular-restricted-three-body-problem.html#equation-eq-non-dimensional-masses-cr3bp)
 
 In this section, we solve the three-body problem, subject to some restrictions. In particular:
 
 1. There are two primary masses, and the mass of the tertiary object $m$ is extremely small in comparison to $m_1$ and $m_2$
-2.  $m_1 < m_2 << m$
+2. $m_1 < m_2 << m$
 3. The two primary objects orbit in a circle around their center of mass
 
 Although these assumptions seem fairly restrictive, they actually represent several very important physical situations: the Earth-Moon system, as well as the orbits of many of the planets around the sun, with a man-made object as the third mass!
 This is called the _Circular Restricted Three-Body Problem_ (CRTBP or CR3BP), because the orbits are restricted to circles and the mass of the third body is restricted to be much smaller than the other two.
 
->We'll see in a later section that the eccentricity of an orbit determines how close to a circle the orbit is. 
+>We'll see in a later section that the eccentricity of an orbit determines how close to a circle the orbit is.
 >An eccentricity of 0 gives the equation for a circle, while vales up to 1.0 are ellipses.
 
-The orbit of the moon around the earth is approximately circular, with a mean eccentricity of $0.054$, and semi-major and semi-minor axes of $384,400 km$ and $383,800 km$, respectively. 
+The orbit of the moon around the earth is approximately circular, with a mean eccentricity of $0.054$, and semi-major and semi-minor axes of $384,400 km$ and $383,800 km$, respectively.
 The center of mass of the system occurs at a distance of $4,600 km$ from the Earth's center, about $72\%$ of the radius of the Earth. This data comes from [Wikipedia](https://en.wikipedia.org/wiki/Orbit_of_the_Moon).
 
 Similarly, the orbits of Venus, Earth, Jupiter, Saturn, Neptune, and Uranus around the sun all have eccentricities less than $0.06$, according to the [NASA Planetary Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/).
@@ -21,6 +22,7 @@ Similarly, the orbits of Venus, Earth, Jupiter, Saturn, Neptune, and Uranus arou
 Unlike the two-body problem, there is no general closed-form solution to this problem. Closed-form means an analytical equation we can solve. But we can construct the equations of motion to find some interesting parameters of the orbits.
 
 ## Orbit of Primary Masses
+
 We first attach a _non-inertial_ coordinate system to the barycenter of the system of $m_1$ and $m_2$, such that the $x$-axis of this coordinate system points towards $m_2$. The distance from $m_1$ to $m_2$ is $r_{12}$, which is also the radius of the circular orbit, as shown in:
 
 > ![CR3BP_img](/resources/CR3BP_img.svg)
@@ -28,35 +30,35 @@ We first attach a _non-inertial_ coordinate system to the barycenter of the syst
 
 The $y$-axis of this coordinate system is in the orbital plane, and the $z$-axis is perpendicular to the orbital plane, in the same direction as the angular momentum vector. In the rotating reference frame, $m_1$ and $m_2$ appear to be stationary.
 
-The *inertial angular velocity* of the *reference frame* is:
+The _inertial angular velocity_ of the _reference frame_ is:
 $$
-	\mathbf{\Omega} = \varOmega\hat{k}
+ \mathbf{\Omega} = \varOmega\hat{k}
 $$
 where
 $$
-	\varOmega = \frac{2\pi}{T}
+ \varOmega = \frac{2\pi}{T}
 $$
 $T$ is the period of the orbit, and the orbital period for a circular orbit is:
 $$
-	T = \frac{2\pi}{\sqrt{\mu}}r_{12}^{3/2}
+ T = \frac{2\pi}{\sqrt{\mu}}r_{12}^{3/2}
 $$
 Plugging this in for $\varOmega$, we find:
 $$\varOmega = \sqrt{\frac{\mu}{r_{12}^3}}$$
 where the gravitational parameter is given by:
 $$
-	\mu = GM = G\left(m_1 + m_2\right)
+ \mu = GM = G\left(m_1 + m_2\right)
 $$
 
-Next, we want to find the positions of the two masses relative to the barycenter. 
+Next, we want to find the positions of the two masses relative to the barycenter.
 By definition, the two masses lie in the orbital plane, so their $z$-coordinate is going to be zero. Since the line that connects $m_1$ and $m_2$ goes through the barycenter, then their $y$-coordinates must be zero as well.
 
 In that case, we only need to find the $x$-coordinates, which we can do from the equation for the center of mass:
 $$
-	m_1 x_1 + m_2 x_2 = 0
+ m_1 x_1 + m_2 x_2 = 0
 $$
 We need a second independent equation to solve for $x_1$ and $x_2$. Fortunately, we know the distance between the masses is $r_{12}$. Solving for $x_2$:
 $$
-	x_2 = x_1 + r_{12}
+ x_2 = x_1 + r_{12}
 $$
 
 To solve this set of equations, it's convenient to define two dimensionless ratios:
@@ -74,13 +76,15 @@ $$\begin{aligned}
 $$
 
 ## Orbit of the Tertiary Mass
-<u>Now let's add</u> the much smaller, <u>tertiary mass</u> $m$ into the system.
+
+<u>Now let's add</u> the much smaller, <uertiary mass</u> $m$ into the system.
 We want the equation of motion, that is, Newton's second law. For that we need the acceleration, which we will derive from the position.
 
 ### Position, Velocity, and Acceleration
-The *position of the tertiary mass* relative to the barycenter is:
+
+The _position of the tertiary mass_ relative to the barycenter is:
 $$
-	\mathbf{r} = x\hat{\imath} + y\hat{\jmath} + z\hat{k}
+ \mathbf{r} = x\hat{\imath} + y\hat{\jmath} + z\hat{k}
 $$
 The position of the tertiary mass relative to $m_1$ is:
 $$
@@ -88,9 +92,9 @@ $$
 $$
 and finally, the position of $m$ relative to $m_2$ is:
 $$
-	\mathbf{r}_2 = \left(x - \pi_1 r_{12}\right)\hat{\imath} + y\hat{\jmath} + z\hat{k}
+ \mathbf{r}_2 = \left(x - \pi_1 r_{12}\right)\hat{\imath} + y\hat{\jmath} + z\hat{k}
 $$
-Newton's second law requires the _inertial_ acceleration. 
+Newton's second law requires the _inertial_ acceleration.
 To find that, we first find the _inertial_ velocity of $m$. We need to account for the rotating frame of reference. This means that the velocity and acceleration need to include the rotation of the coordinate system:
 $$\dot{\mathbf{r}} = \mathbf{v}_{COG} + \mathbf{\Omega}\times\mathbf{r} + \mathbf{v}_{\text{rel}}$$
 where $\mathbf{v}_{COG}$ is the absolute velocity of the barycenter and $\mathbf{v}_{\text{rel}}$ is the velocity calculated in the moving coordinate system:
@@ -98,7 +102,7 @@ $$\mathbf{v}_{\text{rel}} = \dot{x}\hat{\imath} + \dot{y}\hat{\jmath} + \dot{z}\
 $$
 Then we can find the absolute acceleration of $m$:
 $$
-	\ddot{\mathbf{r}} = \mathbf{a}_{COG} + \dot{\mathbf{\Omega}}\times\mathbf{r} + \mathbf{\Omega}\times\left(\mathbf{\Omega}\times\mathbf{r}\right) + 2\mathbf{\Omega}\times\mathbf{v}_{\text{rel}} + \mathbf{a}_{\text{rel}}
+ \ddot{\mathbf{r}} = \mathbf{a}_{COG} + \dot{\mathbf{\Omega}}\times\mathbf{r} + \mathbf{\Omega}\times\left(\mathbf{\Omega}\times\mathbf{r}\right) + 2\mathbf{\Omega}\times\mathbf{v}_{\text{rel}} + \mathbf{a}_{\text{rel}}
 $$
 This equation can be simplified because we showed that the acceleration of the barycenter is zero for the two-body problem, $\mathbf{a}_{COG} = 0$. In addition, the angular velocity is constant since the orbit is circular, so $\dot{\mathbf{\Omega}} = 0$. Then the equation can be simplified to:
 $$\ddot{\mathbf{r}} = \mathbf{\Omega}\times\left(\mathbf{\Omega}\times\mathbf{r}\right) + 2\mathbf{\Omega}\times\mathbf{v}_{\text{rel}} + \mathbf{a}_{\text{rel}}$$
@@ -108,28 +112,29 @@ Plugging everything in and simplifying:
 $$\ddot{\mathbf{r}} = \left(\ddot{x} - 2\varOmega\dot{y} - \varOmega^2 x\right)\hat{\imath} + \left(\ddot{y} + 2\varOmega\dot{x} - \varOmega^2 y\right)\hat{\jmath} + \ddot{z}\hat{k}$$
 
 ### Newton's Second Law
+
 For the tertiary body, the forces are due to both of the other masses:
 $$m \ddot{\mathbf{r}} = \mathbf{F}_1 + \mathbf{F}_2$$
 where $\mathbf{F}_1$ is the force from $m_1$ on $m$ and $\mathbf{F}_2$ is the force from $m_2$ on $m$.
 
 The two forces are found by Newton's law of gravitation:
 $$\begin{aligned}
-	\mathbf{F}_1 &= -G\frac{m_1 m}{r_1^2} \left.\hat{u}_r\right)_1 = -\frac{\mu_1 m}{r_1^3}\mathbf{r}_1 \\
-	\mathbf{F}_2 &= -G\frac{m_2 m}{r_2^2}\left.\hat{u}_r\right)_2 = -\frac{\mu_2 m}{r_2^3}\mathbf{r}_2
-\end{aligned} 
+ \mathbf{F}_1 &= -G\frac{m_1 m}{r_1^2} \left.\hat{u}_r\right)_1 = -\frac{\mu_1 m}{r_1^3}\mathbf{r}_1 \\
+ \mathbf{F}_2 &= -G\frac{m_2 m}{r_2^2}\left.\hat{u}_r\right)_2 = -\frac{\mu_2 m}{r_2^3}\mathbf{r}_2
+\end{aligned}
 \qquad \text{where} \qquad
 \left\{
-	\begin{aligned}
-	\mu_1 &= G m_1 \\ 
-	\mu_2 &= G m_2
-	\end{aligned}
+ \begin{aligned}
+ \mu_1 &= G m_1 \\
+ \mu_2 &= G m_2
+ \end{aligned}
 \right.
 \qquad \text{and} \qquad
 \left\{
-	\begin{aligned}
-		\left.\hat{u}_r\right)_1 &= \frac{\mathbf{r}_1}{r_1}\\ 
-		\left.\hat{u}_r\right)_2 &= \frac{\mathbf{r}_2}{r_2}
-	\end{aligned}
+ \begin{aligned}
+  \left.\hat{u}_r\right)_1 &= \frac{\mathbf{r}_1}{r_1}\\
+  \left.\hat{u}_r\right)_2 &= \frac{\mathbf{r}_2}{r_2}
+ \end{aligned}
 \right.
 $$
 Combining the first and the second equation, and dividing through by $m$, we find:
@@ -145,16 +150,19 @@ $$
 $$
 
 There are a few things we can note from these equations.
-1. the $x$ and $y$ equations are coupled; 
+
+1. the $x$ and $y$ equations are coupled;
 2. the $x$ equation depends on $y$, and the $y$ equation depends on $x$.
 However, the $z$ equation is decoupled from the other two, so if $m$ starts in planar motion, it will remain there.
 
 ## Extra: Non-dimensional Equations of Motion
+
 Next, let's make these equations non-dimensional. This offers the advantage of being general for any system we want to study and removing the dependence on the rate of rotation of the coordinate system.
 
 To make the equations of motion non-dimensional, we need to define characteristic parameters for all of the dimensions in our problem. Typically, the characteristic parameters are chosen so that they are representative of some physical quantity in the system. We need the same number of characteristic parameters as dimensions in the problem.
 
 In this problem, we have 3 dimensions:
+
 1. Mass
 2. Length
 3. Time
@@ -175,7 +183,7 @@ where $x^* = x/r_{12}$, and similar for $y^*$ and $z^*$.
 The natural unit of time in this problem is the period of the circular orbit, Equation $T = \frac{2\pi}{\sqrt{\mu}}r_{12}^{3/2}$. We will ignore the constant factor of $2\pi$ because it doesn't change the dimensions available in the equation. Therefore, the characteristic time is:
 $$t_C = \sqrt{\frac{r_{12}^3}{\mu}}$$
 
-To make Equation $\ddot{\mathbf{r}} = \mathbf{a}_{COG} + \dot{\mathbf{\Omega}}\times\mathbf{r} + \mathbf{\Omega}\times\left(\mathbf{\Omega}\times\mathbf{r}\right) + 2\mathbf{\Omega}\times\mathbf{v}_{\text{rel}} + \mathbf{a}_{\text{rel}}$ non-dimensional, we need to multiply both sides of the equation by $t_C^2/r_{12}$. 
+To make Equation $\ddot{\mathbf{r}} = \mathbf{a}_{COG} + \dot{\mathbf{\Omega}}\times\mathbf{r} + \mathbf{\Omega}\times\left(\mathbf{\Omega}\times\mathbf{r}\right) + 2\mathbf{\Omega}\times\mathbf{v}_{\text{rel}} + \mathbf{a}_{\text{rel}}$ non-dimensional, we need to multiply both sides of the equation by $t_C^2/r_{12}$.
 For the left of the equation, side this makes:
 $$\ddot{\mathbf{\rho}} = \frac{d^2\mathbf{r}}{dt^2}\frac{t_C^2}{r_{12}} = \frac{d^2\mathbf{\rho}}{d\tau^2}$$
 
