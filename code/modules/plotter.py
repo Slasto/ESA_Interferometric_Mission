@@ -43,7 +43,7 @@ def print_result(udp: orbital_golomb_array, x_solution, N_obs: int = 300, show_s
         # mean of all score
         best_solution_idx = sorted(
             range(len(fitness)),
-            key=lambda i: (round(fitness[i],4), -round(distance[i],4) * -round(sat[i],4)), # 
+            key=lambda i: (round(fitness[i],4), -round(distance[i],4) * round(sat[i],4)), # 
             reverse=False
         )[0]
         # best_solution_idx = fitness.index(min(fitness))
