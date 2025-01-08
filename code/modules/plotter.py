@@ -1,4 +1,4 @@
-import array
+from array import array
 import numpy as np
 from matplotlib import pyplot as plt
 from IPython.display import display, Markdown
@@ -41,16 +41,13 @@ def print_result(udp: orbital_golomb_array, x_solution, N_obs: int = 300, show_s
             fitness.append(fitness_score)
 
         # mean of all score
-        #best_solution_idx = sorted( #crescente
-        #range(len(fitness)),
-        #key=lambda i: (
-        #    (round(fitness[i],2), -round(distance[i]/5,2), -sat[i]) # cosi da minimizzare
-        #    ),
-        #reverse=False
-        #)
-        #best_solution_idx = best_solution_idx[0]
-        best_solution_idx = fitness.index(min(fitness))
-        print(f"LOG:\nfitness: {fitness_score}\ndistances: {distance}\nsats: {sat}")
+        best_solution_idx = sorted(
+            range(len(fitness)),
+            key=lambda i: (round(fitness[i],4), -round(distance[i],4) * -round(sat[i],4)), # 
+            reverse=False
+        )[0]
+        # best_solution_idx = fitness.index(min(fitness))
+        print(f"LOG:\nfitness:\t{[round(f, 6) for f in fitness]}\ndistances:\t{[round(d, 4) for d in distance]}\nsats:\t{[round(s, 4) for s in sat]}")
         #print(f"Fitness vector: {fitness}")
         print("--- --- ---")
         print(f"**Score is mean of {len(x_solution)} iterations**")

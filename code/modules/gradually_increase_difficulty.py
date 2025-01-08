@@ -6,6 +6,7 @@ from modules.golomb_problem import (
 from IPython.display import display, Markdown, clear_output
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import numpy as np
 import random
 import pickle
 import copy
@@ -88,7 +89,7 @@ def increase_difficulty(
     return result
 
 def gradually_add_sat_to_solution(
-    udp: orbital_golomb_array,base : int,  until: int, optimizer : callable, verbose : bool = True, file_name: str = None
+    udp: orbital_golomb_array,base : int,  to: int, optimizer : callable, verbose : bool = True, file_name: str = None
 ) -> list[tuple[float, list[float]]]:
     """
     Increase the difficulty of finding optimal solutions by iterating over a range of satellite numbers.
@@ -106,7 +107,7 @@ def gradually_add_sat_to_solution(
                                           corresponding solution for each satellite count.
     """
     result, udp , x_0 = dict(),copy.copy(udp), None
-    for n_sats in tqdm(range(base, until+1), "Optimization on"):
+    for n_sats in tqdm(range(base, to+1), "Optimization on"):
         udp.n_sat = n_sats
         
         if verbose:
@@ -115,19 +116,19 @@ def gradually_add_sat_to_solution(
 
         if x_0 is not None:
             for i in range(6) :
-                x_0.insert(i * (n_sats), random.random())
+                x_0 = np.insert(x_0, i * (n_sats), random.random())
 
-        golomb_fitness, solution = optimizer(udp, x_0, verbose)
-        distances_score, sats_in_grid_score = compute_unique_distances_and_sats_in_grid(udp,solution)
-        ssim_score = similarity_chk(udp, solution, n_orb=300)
+        golomb_fitness, x_0 = optimizer(udp, x_0, verbose)
+        distances_score, sats_in_grid_score = compute_unique_distances_and_sats_in_grid(udp,x_0)
+        ssim_score = similarity_chk(udp, x_0, n_orb=300)
         result[udp.n_sat] = {
             "fitness": golomb_fitness,
             "diverse_distances_metric": distances_score,
             "satellites_in_grid": sats_in_grid_score,
             "ssim": ssim_score,
-            "x_encoded": solution
+            "x_encoded": x_0
         }
-
+        
         if verbose :
             clear_output()
 
