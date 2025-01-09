@@ -25,7 +25,7 @@ Unlike the two-body problem, there is no general closed-form solution to this pr
 
 We first attach a _non-inertial_ coordinate system to the barycenter of the system of $m_1$ and $m_2$, such that the $x$-axis of this coordinate system points towards $m_2$. The distance from $m_1$ to $m_2$ is $r_{12}$, which is also the radius of the circular orbit, as shown in:
 
-> ![CR3BP_img](/resources/CR3BP_img.svg)
+> ![CR3BP_img](./resources/CR3BP_img.svg)
 > The system of masses for the circular restricted three body problem.
 
 The $y$-axis of this coordinate system is in the orbital plane, and the $z$-axis is perpendicular to the orbital plane, in the same direction as the angular momentum vector. In the rotating reference frame, $m_1$ and $m_2$ appear to be stationary.

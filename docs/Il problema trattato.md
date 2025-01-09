@@ -160,3 +160,10 @@ n_factor = 1.23
 ```
 
 "Allarga" la dispersione dei satelliti in alcuni casi...?
+
+
+| **Algoritmo**                  | **Pesantezza di Calcolo**      | **Memoria Richiesta**      | **Numero di Calcoli per Generazione**  |
+|---------------------------------|--------------------------------|----------------------------|---------------------------------------|
+| **Grey Wolf Optimization (GWO)**| Bassa (O(N * D))               | Bassa (O(N))               | Basso (O(N * D))                     |
+| **Differential Evolution (DE)**| Moderata (O(N * D))            | Moderata (O(N * D))        | Moderata (O(N * D))                  |
+| **NSGA-II (Non-dominated Sorting Genetic Algorithm II)** | Alta (O(N^2))                  | Alta (O(N * D), + fronti non dominati) | Alta (O(N^2))                        |
