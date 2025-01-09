@@ -59,7 +59,7 @@ Per ogni vettore della popolazione $x_{i,G}$ viene costruito un vettore mutante 
 $$
   \boldsymbol{v}_{i,G+1}=\boldsymbol{x}_{best,G}+\lambda(\boldsymbol{x}_{i,G}-\boldsymbol{x}_{j,G}) \hspace{30pt}\text{con }i\neq j
 $$
-
+\in
 **DE/best/2/bin**: prendiamo un vettore casualmente $x_{r,G}$ e scegliamo casualmente dalla popolazione altri 1 + 2 vettori, il vettore candidato è dato da:
 $$
   \boldsymbol{v}_{i,G+1}=\boldsymbol{x}_{r,G}+\lambda(\boldsymbol{x}_{i,G}-\boldsymbol{x}_{j,G}-\boldsymbol{x}_{k,G}) \hspace{30pt}\text{con }i\neq j \neq \neq r
